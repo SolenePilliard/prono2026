@@ -669,8 +669,6 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
-
-  .progress-bar {
     height:4px;
     background:var(--dark3);
     border-radius:2px;
@@ -725,6 +723,7 @@
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
   <div class="logo">
     <div class="logo-icon">⚽</div>
@@ -742,6 +741,7 @@
   </div>
 </header>
 
+<!-- NAV TABS -->
 <nav class="nav-tabs" id="main-nav" style="display:none">
   <button class="tab-btn active" onclick="showTab('pronos')">🎯 Mes Pronos</button>
   <button class="tab-btn" onclick="showTab('classement')">🏆 Classement</button>
@@ -749,8 +749,10 @@
   <button class="tab-btn" onclick="showTab('admin')">⚙️ Admin</button>
 </nav>
 
+<!-- MAIN -->
 <main>
 
+  <!-- PAGE LOGIN -->
   <div class="page active" id="page-login">
     <div class="login-trophy">🏆</div>
     <div class="login-title">PRONO 2026</div>
@@ -799,6 +801,7 @@
     </div>
   </div>
 
+  <!-- PAGE PRONOS -->
   <div class="page" id="page-pronos">
     <div class="section-title">MES PRONOS</div>
     <div class="section-sub" id="pronos-sub">Entrez votre score prédit pour chaque match</div>
@@ -814,6 +817,7 @@
     </div>
   </div>
 
+  <!-- PAGE CLASSEMENT -->
   <div class="page" id="page-classement">
     <div class="section-title">CLASSEMENT</div>
     <div class="section-sub">Mis à jour en temps réel selon les résultats</div>
@@ -826,6 +830,7 @@
     </div>
   </div>
 
+  <!-- PAGE RESULTATS -->
   <div class="page" id="page-resultats">
     <div class="section-title">RÉSULTATS</div>
     <div class="section-sub">Détail des pronostics par match</div>
@@ -833,8 +838,10 @@
     <div id="resultats-container"></div>
   </div>
 
+  <!-- PAGE ADMIN -->
   <div class="page" id="page-admin">
 
+    <!-- Verrou mot de passe -->
     <div id="admin-lock">
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;text-align:center">
         <div style="font-size:56px;margin-bottom:16px">🔒</div>
@@ -850,10 +857,12 @@
       </div>
     </div>
 
+    <!-- Contenu admin (masqué jusqu'à auth) -->
     <div id="admin-content" style="display:none">
       <div class="section-title">ADMINISTRATION</div>
       <div class="section-sub">Gestion des joueurs et saisie des résultats</div>
 
+      <!-- Gestion joueurs -->
       <div class="admin-section" style="margin-bottom:20px">
         <div class="admin-title">👥 Joueurs inscrits</div>
         <div id="players-admin-list"></div>
@@ -878,8 +887,10 @@
 
 </main>
 
+<!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
 
+<!-- MODAL RESET PIN -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)" onclick="if(event.target===this) closeModal()">
   <div style="background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.6)">
     <div style="font-size:28px;text-align:center;margin-bottom:8px">🔑</div>
@@ -910,365 +921,1092 @@ const COLORS = [
   '#F97316','#14B8A6','#EC4899','#84CC16','#06B6D4'
 ];
 
-// NOUVELLES DONNÉES : Tes 12 groupes de 4 équipes
+// Coupe du Monde 2026 — 12 groupes officiels (tirage du 5 décembre 2025)
 const GROUPS = {
-  A: { teams: [{name:'Mexique',flag:'🇲🇽'}, {name:'Afrique du Sud',flag:'🇿🇦'}, {name:'Corée du Sud',flag:'🇰🇷'}, {name:'Eur. D',flag:'🏳️'}] },
-  B: { teams: [{name:'Canada',flag:'🇨🇦'}, {name:'Eur. A',flag:'🏳️'}, {name:'Qatar',flag:'🇶🇦'}, {name:'Suisse',flag:'🇨🇭'}] },
-  C: { teams: [{name:'Brésil',flag:'🇧🇷'}, {name:'Maroc',flag:'🇲🇦'}, {name:'Haïti',flag:'🇭🇹'}, {name:'Ecosse',flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'}] },
-  D: { teams: [{name:'USA',flag:'🇺🇸'}, {name:'Paraguay',flag:'🇵🇾'}, {name:'Australie',flag:'🇦🇺'}, {name:'Eur. C',flag:'🏳️'}] },
-  E: { teams: [{name:'Allemagne',flag:'🇩🇪'}, {name:'Curaçao',flag:'🇨🇼'}, {name:'Côte d\'Ivoire',flag:'🇨🇮'}, {name:'Equateur',flag:'🇪🇨'}] },
-  F: { teams: [{name:'Pays-Bas',flag:'🇳🇱'}, {name:'Japon',flag:'🇯🇵'}, {name:'Eur. B',flag:'🏳️'}, {name:'Tunisie',flag:'🇹🇳'}] },
-  G: { teams: [{name:'Belgique',flag:'🇧🇪'}, {name:'Egypte',flag:'🇪🇬'}, {name:'Iran',flag:'🇮🇷'}, {name:'N-Zélande',flag:'🇳🇿'}] },
-  H: { teams: [{name:'Espagne',flag:'🇪🇸'}, {name:'Cap-Vert',flag:'🇨🇻'}, {name:'Arabie Saoudite',flag:'🇸🇦'}, {name:'Uruguay',flag:'🇺🇾'}] },
-  I: { teams: [{name:'France',flag:'🇫🇷'}, {name:'Sénégal',flag:'🇸🇳'}, {name:'Inter. 2',flag:'🏳️'}, {name:'Norvège',flag:'🇳🇴'}] },
-  J: { teams: [{name:'Argentine',flag:'🇦🇷'}, {name:'Algérie',flag:'🇩🇿'}, {name:'Autriche',flag:'🇦🇹'}, {name:'Jordanie',flag:'🇯🇴'}] },
-  K: { teams: [{name:'Portugal',flag:'🇵🇹'}, {name:'Inter. 1',flag:'🏳️'}, {name:'Ouzbékistan',flag:'🇺🇿'}, {name:'Colombie',flag:'🇨🇴'}] },
-  L: { teams: [{name:'Angleterre',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'}, {name:'Croatie',flag:'🇭🇷'}, {name:'Ghana',flag:'🇬🇭'}, {name:'Panama',flag:'🇵🇦'}] }
+  A: { teams: [
+    {name:'Mexique',flag:'🇲🇽'}, {name:'Afrique du Sud',flag:'🇿🇦'}, {name:'Corée du Sud',flag:'🇰🇷'}, {name:'Europe D',flag:'🏳️'}
+  ]},
+  B: { teams: [
+    {name:'Canada',flag:'🇨🇦'}, {name:'Suisse',flag:'🇨🇭'}, {name:'Qatar',flag:'🇶🇦'}, {name:'Europe A',flag:'🏳️'}
+  ]},
+  C: { teams: [
+    {name:'Brésil',flag:'🇧🇷'}, {name:'Maroc',flag:'🇲🇦'}, {name:'Haïti',flag:'🇭🇹'}, {name:'Écosse',flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'}
+  ]},
+  D: { teams: [
+    {name:'USA',flag:'🇺🇸'}, {name:'Paraguay',flag:'🇵🇾'}, {name:'Australie',flag:'🇦🇺'}, {name:'Europe C',flag:'🏳️'}
+  ]},
+  E: { teams: [
+    {name:'Allemagne',flag:'🇩🇪'}, {name:'Curaçao',flag:'🇨🇼'}, {name:'Côte d\'Ivoire',flag:'🇨🇮'}, {name:'Équateur',flag:'🇪🇨'}
+  ]},
+  F: { teams: [
+    {name:'Pays-Bas',flag:'🇳🇱'}, {name:'Japon',flag:'🇯🇵'}, {name:'Tunisie',flag:'🇹🇳'}, {name:'Europe B',flag:'🏳️'}
+  ]},
+  G: { teams: [
+    {name:'Belgique',flag:'🇧🇪'}, {name:'Égypte',flag:'🇪🇬'}, {name:'Iran',flag:'🇮🇷'}, {name:'Nouvelle-Zélande',flag:'🇳🇿'}
+  ]},
+  H: { teams: [
+    {name:'Espagne',flag:'🇪🇸'}, {name:'Cabo Verde',flag:'🇨🇻'}, {name:'Arabie Saoudite',flag:'🇸🇦'}, {name:'Uruguay',flag:'🇺🇾'}
+  ]},
+  I: { teams: [
+    {name:'France',flag:'🇫🇷'}, {name:'Sénégal',flag:'🇸🇳'}, {name:'Norvège',flag:'🇳🇴'}, {name:'Intercont. 2',flag:'🏳️'}
+  ]},
+  J: { teams: [
+    {name:'Argentine',flag:'🇦🇷'}, {name:'Algérie',flag:'🇩🇿'}, {name:'Autriche',flag:'🇦🇹'}, {name:'Jordanie',flag:'🇯🇴'}
+  ]},
+  K: { teams: [
+    {name:'Portugal',flag:'🇵🇹'}, {name:'Colombie',flag:'🇨🇴'}, {name:'Ouzbékistan',flag:'🇺🇿'}, {name:'Intercont. 1',flag:'🏳️'}
+  ]},
+  L: { teams: [
+    {name:'Angleterre',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'}, {name:'Croatie',flag:'🇭🇷'}, {name:'Ghana',flag:'🇬🇭'}, {name:'Panama',flag:'🇵🇦'}
+  ]},
 };
 
-// Fonction pour générer les matchs basée sur tes 12 groupes (A à L)
+// Générer les matchs de poule avec deadlines (23:59 heure Paris la veille)
 function generateGroupMatches() {
   const matches = [];
   let id = 1;
-  const matchDays = ['2026-06-11','2026-06-12','2026-06-13','2026-06-14','2026-06-15','2026-06-16'];
+  // Dates de test (mars 2026) — à remettre en juin pour la vraie CdM
+  const matchDates = {
+    A: ['2026-03-13','2026-03-13','2026-03-17','2026-03-17','2026-03-21','2026-03-21'],
+    B: ['2026-03-13','2026-03-13','2026-03-17','2026-03-17','2026-03-21','2026-03-21'],
+    C: ['2026-03-14','2026-03-14','2026-03-18','2026-03-18','2026-03-22','2026-03-22'],
+    D: ['2026-03-14','2026-03-14','2026-03-18','2026-03-18','2026-03-22','2026-03-22'],
+    E: ['2026-03-15','2026-03-15','2026-03-19','2026-03-19','2026-03-23','2026-03-23'],
+    F: ['2026-03-15','2026-03-15','2026-03-19','2026-03-19','2026-03-23','2026-03-23'],
+    G: ['2026-03-16','2026-03-16','2026-03-20','2026-03-20','2026-03-24','2026-03-24'],
+    H: ['2026-03-16','2026-03-16','2026-03-20','2026-03-20','2026-03-24','2026-03-24'],
+    I: ['2026-03-17','2026-03-17','2026-03-21','2026-03-21','2026-03-25','2026-03-25'],
+    J: ['2026-03-17','2026-03-17','2026-03-21','2026-03-21','2026-03-25','2026-03-25'],
+    K: ['2026-03-18','2026-03-18','2026-03-22','2026-03-22','2026-03-26','2026-03-26'],
+    L: ['2026-03-18','2026-03-18','2026-03-22','2026-03-22','2026-03-26','2026-03-26'],
+  };
+  const displayDates = {
+    A: ['13 Mar','13 Mar','17 Mar','17 Mar','21 Mar','21 Mar'],
+    B: ['13 Mar','13 Mar','17 Mar','17 Mar','21 Mar','21 Mar'],
+    C: ['14 Mar','14 Mar','18 Mar','18 Mar','22 Mar','22 Mar'],
+    D: ['14 Mar','14 Mar','18 Mar','18 Mar','22 Mar','22 Mar'],
+    E: ['15 Mar','15 Mar','19 Mar','19 Mar','23 Mar','23 Mar'],
+    F: ['15 Mar','15 Mar','19 Mar','19 Mar','23 Mar','23 Mar'],
+    G: ['16 Mar','16 Mar','20 Mar','20 Mar','24 Mar','24 Mar'],
+    H: ['16 Mar','16 Mar','20 Mar','20 Mar','24 Mar','24 Mar'],
+    I: ['17 Mar','17 Mar','21 Mar','21 Mar','25 Mar','25 Mar'],
+    J: ['17 Mar','17 Mar','21 Mar','21 Mar','25 Mar','25 Mar'],
+    K: ['18 Mar','18 Mar','22 Mar','22 Mar','26 Mar','26 Mar'],
+    L: ['18 Mar','18 Mar','22 Mar','22 Mar','26 Mar','26 Mar'],
+  };
 
-  Object.entries(GROUPS).forEach(([grp, {teams}], index) => {
-    const matchDay = matchDays[index % matchDays.length];
-    
-    // Pour chaque groupe, on génère les confrontations standard (1vs2 et 3vs4)
-    // Match 1
-    matches.push({
-      id: 'g'+id++,
-      round: 'Groupe '+grp,
-      roundKey: 'group',
-      home: teams[0], away: teams[1],
-      date: 'J-1',
-      deadline: matchDay
-    });
-    // Match 2
-    matches.push({
-      id: 'g'+id++,
-      round: 'Groupe '+grp,
-      roundKey: 'group',
-      home: teams[2], away: teams[3],
-      date: 'J-1',
-      deadline: matchDay
-    });
+  Object.entries(GROUPS).forEach(([grp, {teams}]) => {
+    const md = matchDates[grp];
+    const dd = displayDates[grp];
+    let di = 0;
+    for(let i=0;i<teams.length;i++) {
+      for(let j=i+1;j<teams.length;j++) {
+        const matchDay = md[di] || '2026-06-30';
+        matches.push({
+          id: 'g'+id,
+          round: 'Groupe '+grp,
+          roundKey: 'group',
+          home: teams[i],
+          away: teams[j],
+          date: dd[di++] || '2026',
+          deadline: matchDay,
+        });
+        id++;
+      }
+    }
   });
   return matches;
 }
 
-// Les phases finales restent les mêmes (placeholder)
 const KNOCKOUT_MATCHES = [
-  {id:'final', round:'Finale', roundKey:'final', home:{name:'Finaliste 1',flag:'🏆'}, away:{name:'Finaliste 2',flag:'🏆'}, date:'19 Jul', deadline:'2026-07-19'}
+  // 32es de finale (16 matchs)
+  {id:'r32_1',  round:'32es de finale', roundKey:'r32', home:{name:'1A',flag:'🔷'}, away:{name:'3E/F/G',flag:'🔶'}, date:'29 Mar', deadline:'2026-03-29'},
+  {id:'r32_2',  round:'32es de finale', roundKey:'r32', home:{name:'1C',flag:'🔷'}, away:{name:'3A/B/D',flag:'🔶'}, date:'29 Mar', deadline:'2026-03-29'},
+  {id:'r32_3',  round:'32es de finale', roundKey:'r32', home:{name:'1B',flag:'🔷'}, away:{name:'3G/H/I',flag:'🔶'}, date:'30 Mar', deadline:'2026-03-30'},
+  {id:'r32_4',  round:'32es de finale', roundKey:'r32', home:{name:'1E',flag:'🔷'}, away:{name:'3J/K/L',flag:'🔶'}, date:'30 Mar', deadline:'2026-03-30'},
+  {id:'r32_5',  round:'32es de finale', roundKey:'r32', home:{name:'1D',flag:'🔷'}, away:{name:'2F',flag:'🔶'},     date:'31 Mar', deadline:'2026-03-31'},
+  {id:'r32_6',  round:'32es de finale', roundKey:'r32', home:{name:'1F',flag:'🔷'}, away:{name:'2H',flag:'🔶'},     date:'31 Mar', deadline:'2026-03-31'},
+  {id:'r32_7',  round:'32es de finale', roundKey:'r32', home:{name:'1H',flag:'🔷'}, away:{name:'2J',flag:'🔶'},     date:'1 Apr',  deadline:'2026-04-01'},
+  {id:'r32_8',  round:'32es de finale', roundKey:'r32', home:{name:'1J',flag:'🔷'}, away:{name:'2L',flag:'🔶'},     date:'1 Apr',  deadline:'2026-04-01'},
+  {id:'r32_9',  round:'32es de finale', roundKey:'r32', home:{name:'1G',flag:'🔷'}, away:{name:'2I',flag:'🔶'},     date:'2 Apr',  deadline:'2026-04-02'},
+  {id:'r32_10', round:'32es de finale', roundKey:'r32', home:{name:'1I',flag:'🔷'}, away:{name:'2K',flag:'🔶'},     date:'2 Apr',  deadline:'2026-04-02'},
+  {id:'r32_11', round:'32es de finale', roundKey:'r32', home:{name:'1K',flag:'🔷'}, away:{name:'2A',flag:'🔶'},     date:'3 Apr',  deadline:'2026-04-03'},
+  {id:'r32_12', round:'32es de finale', roundKey:'r32', home:{name:'1L',flag:'🔷'}, away:{name:'2B',flag:'🔶'},     date:'3 Apr',  deadline:'2026-04-03'},
+  {id:'r32_13', round:'32es de finale', roundKey:'r32', home:{name:'2C',flag:'🔷'}, away:{name:'3B/D/E',flag:'🔶'}, date:'4 Apr',  deadline:'2026-04-04'},
+  {id:'r32_14', round:'32es de finale', roundKey:'r32', home:{name:'2D',flag:'🔷'}, away:{name:'3C/F/H',flag:'🔶'}, date:'4 Apr',  deadline:'2026-04-04'},
+  {id:'r32_15', round:'32es de finale', roundKey:'r32', home:{name:'2E',flag:'🔷'}, away:{name:'2G',flag:'🔶'},     date:'5 Apr',  deadline:'2026-04-05'},
+  {id:'r32_16', round:'32es de finale', roundKey:'r32', home:{name:'2M',flag:'🔷'}, away:{name:'3A/I/J/K/L',flag:'🔶'}, date:'5 Apr', deadline:'2026-04-05'},
+  // Huitièmes de finale (8 matchs)
+  {id:'r16_1', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M1',flag:'⚡'}, away:{name:'M2',flag:'⚡'},   date:'9 Apr',  deadline:'2026-04-09'},
+  {id:'r16_2', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M3',flag:'⚡'}, away:{name:'M4',flag:'⚡'},   date:'9 Apr',  deadline:'2026-04-09'},
+  {id:'r16_3', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M5',flag:'⚡'}, away:{name:'M6',flag:'⚡'},   date:'10 Apr', deadline:'2026-04-10'},
+  {id:'r16_4', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M7',flag:'⚡'}, away:{name:'M8',flag:'⚡'},   date:'10 Apr', deadline:'2026-04-10'},
+  {id:'r16_5', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M9',flag:'⚡'}, away:{name:'M10',flag:'⚡'},  date:'11 Apr', deadline:'2026-04-11'},
+  {id:'r16_6', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M11',flag:'⚡'}, away:{name:'M12',flag:'⚡'}, date:'11 Apr', deadline:'2026-04-11'},
+  {id:'r16_7', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M13',flag:'⚡'}, away:{name:'M14',flag:'⚡'}, date:'12 Apr', deadline:'2026-04-12'},
+  {id:'r16_8', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M15',flag:'⚡'}, away:{name:'M16',flag:'⚡'}, date:'12 Apr', deadline:'2026-04-12'},
+  // Quarts de finale
+  {id:'qf_1', round:'Quarts de finale', roundKey:'qf', home:{name:'QF1',flag:'💥'}, away:{name:'QF2',flag:'💥'}, date:'16 Apr', deadline:'2026-04-16'},
+  {id:'qf_2', round:'Quarts de finale', roundKey:'qf', home:{name:'QF3',flag:'💥'}, away:{name:'QF4',flag:'💥'}, date:'16 Apr', deadline:'2026-04-16'},
+  {id:'qf_3', round:'Quarts de finale', roundKey:'qf', home:{name:'QF5',flag:'💥'}, away:{name:'QF6',flag:'💥'}, date:'17 Apr', deadline:'2026-04-17'},
+  {id:'qf_4', round:'Quarts de finale', roundKey:'qf', home:{name:'QF7',flag:'💥'}, away:{name:'QF8',flag:'💥'}, date:'17 Apr', deadline:'2026-04-17'},
+  // Demi-finales
+  {id:'sf_1', round:'Demi-finales', roundKey:'sf', home:{name:'SF1',flag:'🌟'}, away:{name:'SF2',flag:'🌟'}, date:'21 Apr', deadline:'2026-04-21'},
+  {id:'sf_2', round:'Demi-finales', roundKey:'sf', home:{name:'SF3',flag:'🌟'}, away:{name:'SF4',flag:'🌟'}, date:'22 Apr', deadline:'2026-04-22'},
+  // Finale
+  {id:'final', round:'Finale', roundKey:'final', home:{name:'SF1W',flag:'🏆'}, away:{name:'SF2W',flag:'🏆'}, date:'26 Apr', deadline:'2026-04-26'},
 ];
 
 const ALL_MATCHES = [...generateGroupMatches(), ...KNOCKOUT_MATCHES];
 
+
 // ==========================================
-// LOGIQUE DE L'APPLICATION (IDENTIQUE À L'ORIGINAL)
+// DEADLINE LOGIC — fermeture à 23:59 Paris la veille
 // ==========================================
 
-let state = {
-  user: null,
-  players: [],
-  pronos: {},
-  results: {}
-};
-
-// --- BASE DE DONNÉES (INDEXEDDB) ---
-function dbOpen() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('Prono2026DB', 1);
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if(!db.objectStoreNames.contains('data')) db.createObjectStore('data');
-    };
-    request.onsuccess = (e) => resolve(e.target.result);
-    request.onerror = (e) => reject(e.target.error);
+function getDeadlineParis(matchDeadline) {
+  // matchDeadline = 'YYYY-MM-DD' (jour du match)
+  // On ferme à 23:59:59 heure Paris la VEILLE
+  // On construit la date de la veille à 23:59:59 en Europe/Paris
+  const [y, m, d] = matchDeadline.split('-').map(Number);
+  // Veille = même date - 1 jour, à 23:59:59
+  const veille = new Date(y, m-1, d-1, 23, 59, 59);
+  // Convertir en timestamp Paris : on utilise Intl pour détecter l'offset Paris
+  const parisFmt = new Intl.DateTimeFormat('fr-FR', {
+    timeZone: 'Europe/Paris',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false
   });
+  // On crée un Date qui correspond à "veille 23:59:59 heure Paris"
+  // Astuce : on parse le timestamp UTC correspondant
+  const target = `${y}-${String(m).padStart(2,'0')}-${String(d-1).padStart(2,'0')}T23:59:59`;
+  // Calculer l'offset Europe/Paris pour cette date
+  const utcDate = new Date(target + 'Z');
+  const parisOffset = getParisOffsetMinutes(utcDate);
+  return new Date(utcDate.getTime() - parisOffset * 60000);
+}
+
+function getParisOffsetMinutes(date) {
+  // Retourne l'offset UTC→Paris en minutes (ex: CEST = +120, CET = +60)
+  const utcStr = date.toLocaleString('en-US', { timeZone: 'UTC' });
+  const parisStr = date.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
+  const diff = (new Date(parisStr) - new Date(utcStr)) / 60000;
+  return diff;
+}
+
+function isMatchClosed(match) {
+  if(!match.deadline) return false;
+  try {
+    const deadline = getDeadlineParis(match.deadline);
+    return new Date() > deadline;
+  } catch(e) { return false; }
+}
+
+function getDeadlineLabel(match) {
+  if(!match.deadline) return '';
+  const [y, m, d] = match.deadline.split('-').map(Number);
+  const veille = new Date(y, m-1, d-1);
+  return veille.toLocaleDateString('fr-FR', { day:'numeric', month:'short' }) + ' à 23h59';
+}
+
+// ==========================================
+// JSONBIN — BASE DE DONNÉES PARTAGÉE
+// ==========================================
+
+const JSONBIN_API_KEY = '$2a$10$apjrLGY4JE5/xJrMaYlVH.PGTIaVf/msXACvAq0/9S4ZSca8JjwIi';
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b';
+let BIN_ID = localStorage.getItem('prono2026_binid') || null;
+
+// Données initiales vides
+const EMPTY_DATA = { players: [], pronos: {}, results: {} };
+
+async function dbLoad() {
+  showSyncStatus('⏳ Chargement...', 'loading');
+  try {
+    if (!BIN_ID) {
+      const res = await fetch(JSONBIN_BASE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': JSONBIN_API_KEY,
+          'X-Bin-Name': 'prono2026',
+          'X-Bin-Private': 'false'
+        },
+        body: JSON.stringify(EMPTY_DATA)
+      });
+      const json = await res.json();
+      BIN_ID = json.metadata.id;
+      localStorage.setItem('prono2026_binid', BIN_ID);
+      showSyncStatus('✅ Base créée', 'ok');
+      return EMPTY_DATA;
+    } else {
+      const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+      });
+      const json = await res.json();
+      showSyncStatus('✅ Synchronisé', 'ok');
+      return json.record || EMPTY_DATA;
+    }
+  } catch(e) {
+    showSyncStatus('❌ Erreur réseau', 'error');
+    console.error(e);
+    return EMPTY_DATA;
+  }
 }
 
 async function dbSave() {
-  const db = await dbOpen();
-  return new Promise((resolve) => {
-    const tx = db.transaction('data', 'readwrite');
-    tx.objectStore('data').put(state.players, 'players');
-    tx.objectStore('data').put(state.pronos, 'pronos');
-    tx.objectStore('data').put(state.results, 'results');
-    tx.oncomplete = () => resolve();
-  });
+  if (!BIN_ID) return;
+  showSyncStatus('💾 Sauvegarde...', 'loading');
+  try {
+    await fetch(`${JSONBIN_BASE}/${BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify({
+        players: state.players,
+        pronos: state.pronos,
+        results: state.results,
+        unlockedPhases: state.unlockedPhases,
+        knockoutTeams: state.knockoutTeams,
+      })
+    });
+    showSyncStatus('✅ Sauvegardé', 'ok');
+  } catch(e) {
+    showSyncStatus('❌ Erreur sauvegarde', 'error');
+    console.error(e);
+  }
 }
 
-async function dbLoad() {
-  const db = await dbOpen();
-  return new Promise((resolve) => {
-    const tx = db.transaction('data', 'readonly');
-    const store = tx.objectStore('data');
-    const data = {};
-    store.get('players').onsuccess = (e) => data.players = e.target.result;
-    store.get('pronos').onsuccess = (e) => data.pronos = e.target.result;
-    store.get('results').onsuccess = (e) => data.results = e.target.result;
-    tx.oncomplete = () => resolve(data);
-  });
+function showSyncStatus(msg, type) {
+  // désactivé
 }
 
-// --- GESTION DES JOUEURS ---
-function refreshPlayerSelect() {
-  const sel = document.getElementById('select-player');
-  const val = sel.value;
-  sel.innerHTML = '<option value="">— Sélectionner —</option>';
-  state.players.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.name;
-    opt.textContent = p.name;
-    sel.appendChild(opt);
-  });
-  sel.value = val;
+// Compatibilité : save() appelle dbSave()
+function save(key, val) {
+  // Les données sont déjà dans state, on synchro tout
+  dbSave();
 }
 
-function onSelectPlayer() {
-  document.getElementById('input-login-pin').value = '';
-  document.getElementById('input-login-pin').focus();
+let state = {
+  currentUser: null,
+  players: [],
+  pronos: {},
+  results: {},
+  unlockedPhases: { group: true, r32: false, r16: false, qf: false, sf: false, final: false },
+  knockoutTeams: {}, // {matchId: {home:{name,flag}, away:{name,flag}}}
+};
+
+// ==========================================
+// AUTH
+// ==========================================
+
+// Simple hash pour stocker le PIN (non réversible côté client)
+async function hashPin(pin) {
+  const msgBuffer = new TextEncoder().encode('prono2026:' + pin);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+function getInitials(p) {
+  return (p.prenom[0]||'') + (p.nom[0]||'');
+}
+
+function onSelectPlayer() {}
 
 function toggleRegister() {
-  const s = document.getElementById('login-select');
-  const r = document.getElementById('login-register');
-  s.style.display = s.style.display === 'none' ? 'block' : 'none';
-  r.style.display = r.style.display === 'none' ? 'block' : 'none';
+  const reg = document.getElementById('login-register');
+  const sel = document.getElementById('login-select');
+  reg.style.display = reg.style.display === 'none' ? 'block' : 'none';
+  sel.style.display = sel.style.display === 'none' ? 'block' : 'none';
 }
 
 async function registerPlayer() {
-  const pre = document.getElementById('input-prenom').value.trim();
+  const prenom = document.getElementById('input-prenom').value.trim();
   const nom = document.getElementById('input-nom').value.trim();
-  const pin = document.getElementById('input-pin').value;
-  const pin2 = document.getElementById('input-pin2').value;
+  const pin = document.getElementById('input-pin').value.trim();
+  const pin2 = document.getElementById('input-pin2').value.trim();
 
-  if(!pre || !nom) return showToast("Prénom et Nom requis", "error");
-  if(pin.length !== 4 || !/^\d+$/.test(pin)) return showToast("Le PIN doit faire 4 chiffres", "error");
-  if(pin !== pin2) return showToast("Les PIN ne correspondent pas", "error");
-  
-  const fullName = pre + " " + nom;
-  if(state.players.find(p => p.name === fullName)) return showToast("Ce nom existe déjà", "error");
+  if(!prenom || !nom) { showToast('Veuillez remplir prénom et nom', 'error'); return; }
+  if(!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { showToast('Le PIN doit être 4 chiffres', 'error'); return; }
+  if(pin !== pin2) { showToast('Les deux PIN ne correspondent pas', 'error'); return; }
 
-  state.players.push({ name: fullName, pin: pin });
-  await dbSave();
-  showToast("Compte créé avec succès !", "success");
-  refreshPlayerSelect();
-  document.getElementById('select-player').value = fullName;
-  toggleRegister();
+  const exists = state.players.find(p => p.prenom.toLowerCase()===prenom.toLowerCase() && p.nom.toLowerCase()===nom.toLowerCase());
+  if(exists) { showToast('Ce profil existe déjà !', 'error'); return; }
+
+  const pinHash = await hashPin(pin);
+  const player = {
+    id: 'p' + Date.now(),
+    prenom, nom,
+    pinHash,
+    color: COLORS[state.players.length % COLORS.length],
+    createdAt: new Date().toISOString()
+  };
+  state.players.push(player);
+  save('players', state.players);
+
+  document.getElementById('input-prenom').value = '';
+  document.getElementById('input-nom').value = '';
+  document.getElementById('input-pin').value = '';
+  document.getElementById('input-pin2').value = '';
+
+  showToast('✅ Compte créé ! Connexion...', 'success');
+  setTimeout(() => loginAs(player), 600);
 }
 
-function loginExisting() {
-  const name = document.getElementById('select-player').value;
-  const pin = document.getElementById('input-login-pin').value;
-  if(!name) return showToast("Choisissez un profil", "error");
-  
-  const p = state.players.find(x => x.name === name);
-  if(p && p.pin === pin) {
-    state.user = name;
-    document.getElementById('page-login').classList.remove('active');
-    document.getElementById('main-nav').style.display = 'flex';
-    document.getElementById('user-badge').style.display = 'flex';
-    document.getElementById('btn-change-user').style.display = 'block';
-    document.getElementById('user-name-display').textContent = name;
-    document.getElementById('user-avatar').textContent = name.charAt(0);
-    showTab('pronos');
-    renderPronos();
-  } else {
-    showToast("PIN incorrect", "error");
-  }
-}
+async function loginExisting() {
+  const sel = document.getElementById('select-player');
+  const id = sel.value;
+  const pin = document.getElementById('input-login-pin').value.trim();
 
-function showLogin() {
-  state.user = null;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-login').classList.add('active');
-  document.getElementById('main-nav').style.display = 'none';
-  document.getElementById('user-badge').style.display = 'none';
-  document.getElementById('btn-change-user').style.display = 'none';
-  document.getElementById('input-login-pin').value = '';
-}
+  if(!id) { showToast('Sélectionnez un profil', 'error'); return; }
+  if(!pin) { showToast('Entrez votre PIN', 'error'); return; }
 
-// --- NAVIGATION & RENDU ---
-function showTab(tabId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + tabId).classList.add('active');
-  document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
-  
-  if(tabId === 'classement') renderClassement();
-  if(tabId === 'resultats') renderGlobalResults();
-}
+  const player = state.players.find(p => p.id === id);
+  if(!player) { showToast('Profil introuvable', 'error'); return; }
 
-function renderPronos() {
-  const container = document.getElementById('pronos-container');
-  container.innerHTML = '';
-  let currentRound = '';
-  const userPronos = state.pronos[state.user] || {};
-  const now = new Date();
-
-  ALL_MATCHES.forEach(m => {
-    if(m.round !== currentRound) {
-      currentRound = m.round;
-      container.innerHTML += `<div class="round-title">${currentRound}</div>`;
-    }
-
-    const prono = userPronos[m.id] || {s1: '', s2: ''};
-    const isClosed = now > new Date(m.deadline + 'T23:59:59');
-
-    container.innerHTML += `
-      <div class="match-card ${prono.s1 !== '' ? 'has-prono' : ''} ${isClosed ? 'closed-match' : ''}">
-        <div class="team-side">
-          <span class="team-flag">${m.home.flag}</span>
-          <span class="team-name">${m.home.name}</span>
-        </div>
-        <div class="match-center">
-          <div class="score-input-group">
-            <input type="number" class="score-input" id="p1_${m.id}" value="${prono.s1}" ${isClosed ? 'disabled' : ''}>
-            <span class="vs-sep">VS</span>
-            <input type="number" class="score-input" id="p2_${m.id}" value="${prono.s2}" ${isClosed ? 'disabled' : ''}>
-          </div>
-          <div class="match-date">${isClosed ? '🔒 Fermé' : '📅 ' + m.date}</div>
-        </div>
-        <div class="team-side">
-          <span class="team-flag">${m.away.flag}</span>
-          <span class="team-name">${m.away.name}</span>
-        </div>
-      </div>
-    `;
-  });
-}
-
-async function saveAllPronos() {
-  if(!state.pronos[state.user]) state.pronos[state.user] = {};
-  const now = new Date();
-  let count = 0;
-
-  ALL_MATCHES.forEach(m => {
-    const isClosed = now > new Date(m.deadline + 'T23:59:59');
-    if(!isClosed) {
-      const s1 = document.getElementById('p1_'+m.id).value;
-      const s2 = document.getElementById('p2_'+m.id).value;
-      if(s1 !== '' && s2 !== '') {
-        state.pronos[state.user][m.id] = {s1: parseInt(s1), s2: parseInt(s2)};
-        count++;
-      }
-    }
-  });
-
-  await dbSave();
-  showToast(`${count} pronostics enregistrés !`, "success");
-  renderPronos();
-}
-
-function calculatePoints(prono, result, roundKey) {
-  if(!prono || !result || result.s1 === null) return 0;
-  let pts = 0;
-  if(prono.s1 === result.s1 && prono.s2 === result.s2) pts = 5;
-  else if(Math.sign(prono.s1 - prono.s2) === Math.sign(result.s1 - result.s2)) pts = 2;
-  
-  const coeffs = { group: 1, r16: 2, qf: 3, sf: 4, final: 5 };
-  return pts * (coeffs[roundKey] || 1);
-}
-
-function renderClassement() {
-  const container = document.getElementById('classement-container');
-  const scores = state.players.map(p => {
-    let total = 0;
-    const pPronos = state.pronos[p.name] || {};
-    ALL_MATCHES.forEach(m => {
-      total += calculatePoints(pPronos[m.id], state.results[m.id], m.roundKey);
-    });
-    return { name: p.name, pts: total };
-  });
-
-  scores.sort((a,b) => b.pts - a.pts);
-  
-  if(scores.length === 0) {
-    container.innerHTML = `<div class="empty-state">Aucun joueur inscrit</div>`;
+  // Compatibilité : anciens comptes sans PIN
+  if(!player.pinHash) {
+    showToast('⚠️ Ce compte n\'a pas de PIN. Contactez l\'admin.', 'error');
     return;
   }
 
-  container.innerHTML = `
-    <div class="scoreboard">
-      <div class="scoreboard-header">
-        <span>RANG</span><span>JOUEUR</span><span></span><span></span><span>TOTAL</span>
-      </div>
-      ${scores.map((s, i) => `
-        <div class="scoreboard-row ${i<3 ? 'top'+(i+1) : ''}">
-          <div class="rank-badge rank-${i<3 ? (i+1) : 'other'}">${i+1}</div>
-          <div class="player-name">${s.name}</div>
-          <div></div><div></div>
-          <div class="score-total">${s.pts}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
-// --- ADMIN ---
-function checkAdminPwd() {
-  if(document.getElementById('admin-pwd-input').value === '2026') {
-    document.getElementById('admin-lock').style.display = 'none';
-    document.getElementById('admin-content').style.display = 'block';
-    renderAdmin();
-  } else {
-    showToast("Mot de passe incorrect", "error");
+  const pinHash = await hashPin(pin);
+  if(pinHash !== player.pinHash) {
+    document.getElementById('input-login-pin').style.borderColor = 'var(--red)';
+    setTimeout(() => document.getElementById('input-login-pin').style.borderColor = '', 1500);
+    showToast('❌ PIN incorrect', 'error');
+    return;
   }
+
+  document.getElementById('input-login-pin').value = '';
+  loginAs(player);
 }
 
-function renderAdmin() {
-  const container = document.getElementById('admin-container');
-  container.innerHTML = '';
-  let currentRound = '';
+function loginAs(player) {
+  state.currentUser = player;
+  document.getElementById('user-avatar').textContent = getInitials(player).toUpperCase();
+  document.getElementById('user-avatar').style.background = `linear-gradient(135deg, ${player.color}, ${player.color}88)`;
+  document.getElementById('user-name-display').textContent = player.prenom + ' ' + player.nom;
+  document.getElementById('user-badge').style.display = 'flex';
+  document.getElementById('btn-change-user').style.display = 'block';
+  document.getElementById('main-nav').style.display = 'flex';
 
-  ALL_MATCHES.forEach(m => {
-    if(m.round !== currentRound) {
-      currentRound = m.round;
-      container.innerHTML += `<div class="round-title">${currentRound}</div>`;
-    }
-    const res = state.results[m.id] || {s1: null, s2: null};
-    container.innerHTML += `
-      <div class="match-card result-entered">
-        <div class="team-side"><span class="team-name">${m.home.name}</span></div>
-        <div class="score-input-group">
-          <input type="number" class="score-input" value="${res.s1??''}" onchange="updateResult('${m.id}', 1, this.value)">
-          <span class="vs-sep">-</span>
-          <input type="number" class="score-input" value="${res.s2??''}" onchange="updateResult('${m.id}', 2, this.value)">
-        </div>
-        <div class="team-side"><span class="team-name">${m.away.name}</span></div>
-      </div>
-    `;
+  document.getElementById('page-login').style.display = 'none';
+  showTab('pronos');
+}
+
+function showLogin() {
+  state.currentUser = null;
+  document.getElementById('user-badge').style.display = 'none';
+  document.getElementById('btn-change-user').style.display = 'none';
+  document.getElementById('main-nav').style.display = 'none';
+
+  // Reset pages
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById('page-login').style.display = 'flex';
+
+  // Reload fresh data from DB so new players appear
+  dbLoad().then(data => {
+    state.players = data.players || [];
+    state.pronos = data.pronos || {};
+    state.results = data.results || {};
+    refreshPlayerSelect();
   });
 }
 
-async function updateResult(mid, side, val) {
-  if(!state.results[mid]) state.results[mid] = {s1: null, s2: null};
-  state.results[mid]['s'+side] = val === '' ? null : parseInt(val);
-  await dbSave();
+function refreshPlayerSelect() {
+  const sel = document.getElementById('select-player');
+  sel.innerHTML = '<option value="">— Sélectionner —</option>';
+  state.players.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.prenom + ' ' + p.nom;
+    sel.appendChild(opt);
+  });
 }
 
-function showToast(msg, type) {
+// ==========================================
+// TABS
+// ==========================================
+
+function showTab(tab) {
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  const page = document.getElementById('page-'+tab);
+  if(page) { page.classList.add('active'); page.style.display = 'block'; }
+
+  const btns = document.querySelectorAll('.tab-btn');
+  btns.forEach(b => { if(b.getAttribute('onclick').includes(tab)) b.classList.add('active'); });
+
+  if(tab === 'pronos') renderPronos();
+  if(tab === 'classement') {
+    dbLoad().then(data => { state.players=data.players||[]; state.pronos=data.pronos||{}; state.results=data.results||{}; renderClassement(); });
+  }
+  if(tab === 'resultats') {
+    dbLoad().then(data => { state.players=data.players||[]; state.pronos=data.pronos||{}; state.results=data.results||{}; renderResultats(); });
+  }
+  if(tab === 'admin') {
+    // Réafficher le verrou à chaque fois qu'on arrive sur l'onglet admin
+    const lock = document.getElementById('admin-lock');
+    const content = document.getElementById('admin-content');
+    if(lock && content) {
+      // Ne reset que si le contenu n'est pas déjà visible (session courante)
+      if(content.style.display === 'none') {
+        lock.style.display = 'block';
+      } else {
+        renderPlayersAdmin();
+        renderAdmin();
+      }
+    }
+  }
+}
+
+// ==========================================
+// PRONOS PAGE
+// ==========================================
+
+function renderPronos() {
+  if(!state.currentUser) return;
+  const uid = state.currentUser.id;
+  const myPronos = state.pronos[uid] || {};
+
+  // Group matches by round label
+  const rounds = {};
+  ALL_MATCHES.forEach(m => {
+    if(!rounds[m.round]) rounds[m.round] = [];
+    rounds[m.round].push(m);
+  });
+
+  let html = '';
+  Object.entries(rounds).forEach(([roundName, matches]) => {
+    const roundKey = matches[0].roundKey;
+    const isUnlocked = state.unlockedPhases[roundKey];
+
+    html += `<div class="round-title">${getRoundIcon(roundKey)} ${roundName}`;
+    if(!isUnlocked) html += ` <span style="font-size:13px;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:500">🔒 Phase verrouillée</span>`;
+    html += `</div>`;
+
+    if(!isUnlocked) {
+      html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:8px">
+        🔒 Cette phase sera débloquée par l'admin une fois les équipes qualifiées connues.
+      </div>`;
+      return;
+    }
+
+    html += `<div class="matches-grid">`;
+    matches.forEach(m => {
+      const p = myPronos[m.id];
+      const hasProno = p !== undefined && p.home !== '' && p.away !== '';
+      const isKO = m.roundKey !== 'group';
+      const closed = isMatchClosed(m);
+      const kt = state.knockoutTeams[m.id] || {};
+      const homeTeam = kt.home || m.home;
+      const awayTeam = kt.away || m.away;
+
+      const cardClass = closed ? 'match-card closed-match' : (hasProno ? 'match-card has-prono' : 'match-card');
+      const inputDisabled = closed ? 'disabled' : '';
+      const statusHtml = closed
+        ? `<div style="font-size:11px;color:var(--red);font-weight:600">🔒 Pronos fermés</div>`
+        : (hasProno
+            ? `<div class="prono-saved">✅ Prono enregistré</div>`
+            : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`);
+
+      html += `
+      <div class="${cardClass}" id="mc-${m.id}">
+        <div class="team-side">
+          <div class="team-flag">${homeTeam.flag}</div>
+          <div class="team-name">${homeTeam.name}</div>
+        </div>
+        <div class="match-center">
+          <div class="match-date">📅 ${m.date}</div>
+          <div class="score-input-group">
+            <input type="number" class="score-input" id="ph-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.home : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+            <span class="vs-sep">-</span>
+            <input type="number" class="score-input" id="pa-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.away : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+          </div>
+          ${statusHtml}
+          ${isKO ? `<div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>` : ''}
+        </div>
+        <div class="team-side">
+          <div class="team-flag">${awayTeam.flag}</div>
+          <div class="team-name">${awayTeam.name}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('pronos-container').innerHTML = html;
+
+  // Progress
+  const total = ALL_MATCHES.length;
+  const done = ALL_MATCHES.filter(m => myPronos[m.id] && myPronos[m.id].home !== '' && myPronos[m.id].away !== '').length;
+  document.getElementById('pronos-sub').innerHTML = `<span>${done}/${total} matchs pronos saisis</span>
+    <div class="progress-bar" style="max-width:200px;display:inline-block;width:100%;vertical-align:middle;margin-left:10px">
+      <div class="progress-fill" style="width:${Math.round(done/total*100)}%"></div>
+    </div>`;
+}
+
+function autoSaveProno(matchId) {
+  const match = ALL_MATCHES.find(m => m.id === matchId);
+  if(match && isMatchClosed(match)) {
+    showToast('🔒 Ce match est fermé aux pronos', 'error');
+    return;
+  }
+  const uid = state.currentUser.id;
+  if(!state.pronos[uid]) state.pronos[uid] = {};
+  const h = document.getElementById('ph-'+matchId).value;
+  const a = document.getElementById('pa-'+matchId).value;
+  if(h !== '' && a !== '') {
+    state.pronos[uid][matchId] = { home: parseInt(h), away: parseInt(a) };
+    const card = document.getElementById('mc-'+matchId);
+    if(card) card.classList.add('has-prono');
+  }
+}
+
+function saveAllPronos() {
+  const uid = state.currentUser.id;
+  let saved = 0;
+  ALL_MATCHES.forEach(m => {
+    if(isMatchClosed(m)) return; // ne pas écraser les pronos fermés
+    const h = document.getElementById('ph-'+m.id);
+    const a = document.getElementById('pa-'+m.id);
+    if(h && a && h.value !== '' && a.value !== '') {
+      if(!state.pronos[uid]) state.pronos[uid] = {};
+      state.pronos[uid][m.id] = { home: parseInt(h.value), away: parseInt(a.value) };
+      saved++;
+    }
+  });
+  save('pronos', state.pronos);
+  showToast(`✅ ${saved} pronostics sauvegardés !`, 'success');
+  renderPronos();
+}
+
+// ==========================================
+// SCORING ENGINE
+// ==========================================
+
+// Coefficients par phase
+const ROUND_COEFFICIENTS = {
+  group: 1,
+  r32:   1,
+  r16:   2,
+  qf:    3,
+  sf:    4,
+  final: 5,
+};
+
+const ROUND_LABELS = {
+  group: '×1',
+  r32:   '×1',
+  r16:   '×2',
+  qf:    '×3',
+  sf:    '×4',
+  final: '×5',
+};
+
+function getResult(score) {
+  if(score.home > score.away) return 'home';
+  if(score.away > score.home) return 'away';
+  return 'draw';
+}
+
+function calcPoints(prono, result, roundKey) {
+  if(!prono || !result) return 0;
+  const coeff = ROUND_COEFFICIENTS[roundKey] || 1;
+  if(prono.home === result.home && prono.away === result.away) return 5 * coeff;
+  if(getResult(prono) === getResult(result)) return 2 * coeff;
+  return 0;
+}
+
+function computePlayerScore(playerId) {
+  const pronos = state.pronos[playerId] || {};
+  let total = 0, perfect = 0, good = 0;
+
+  ALL_MATCHES.forEach(m => {
+    const p = pronos[m.id];
+    const r = state.results[m.id];
+    if(!p || !r) return;
+
+    const pts = calcPoints(p, r, m.roundKey);
+    if(pts >= 5) perfect++;
+    else if(pts >= 2) good++;
+    total += pts;
+  });
+
+  return { total, perfect, good };
+}
+
+// ==========================================
+// CLASSEMENT PAGE
+// ==========================================
+
+function renderClassement() {
+  const hasResults = Object.keys(state.results).length > 0;
+
+  if(!hasResults) {
+    document.getElementById('classement-container').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⏳</div>
+        <div style="font-size:16px;margin-bottom:8px">Pas encore de résultats</div>
+        <div>Les points s'afficheront ici dès que les résultats seront saisis dans l'onglet Admin</div>
+      </div>`;
+    return;
+  }
+
+  const scores = state.players.map(p => ({
+    player: p,
+    ...computePlayerScore(p.id),
+    pronosCount: Object.keys(state.pronos[p.id] || {}).length
+  }));
+
+  scores.sort((a,b) => b.total - a.total);
+
+  let html = `<div class="scoreboard">
+    <div class="scoreboard-header">
+      <div>#</div>
+      <div>Joueur</div>
+      <div style="text-align:center">Exact</div>
+      <div style="text-align:center">Bon</div>
+      <div style="text-align:center">Points</div>
+    </div>`;
+
+  scores.forEach((s, i) => {
+    const rank = i+1;
+    const rowClass = rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
+    const badgeClass = rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
+    html += `
+      <div class="scoreboard-row ${rowClass}">
+        <div><div class="rank-badge ${badgeClass}">${rank}</div></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="player-avatar" style="width:32px;height:32px;font-size:13px;background:linear-gradient(135deg,${s.player.color},${s.player.color}88)">${getInitials(s.player).toUpperCase()}</div>
+          <div>
+            <div style="font-weight:600;font-size:14px">${s.player.prenom} ${s.player.nom}</div>
+            <div style="font-size:11px;color:var(--muted)">${s.pronosCount} pronos</div>
+          </div>
+        </div>
+        <div class="score-cell"><span class="points-badge pts-perfect">${s.perfect}</span></div>
+        <div class="score-cell"><span class="points-badge pts-good">${s.good}</span></div>
+        <div class="score-total">${s.total}</div>
+      </div>`;
+  });
+
+  html += '</div>';
+  document.getElementById('classement-container').innerHTML = html;
+}
+
+// ==========================================
+// RESULTATS PAGE
+// ==========================================
+
+function renderResultats() {
+  const rounds = {};
+  ALL_MATCHES.forEach(m => {
+    if(!rounds[m.round]) rounds[m.round] = [];
+    rounds[m.round].push(m);
+  });
+
+  let html = '';
+
+  Object.entries(rounds).forEach(([roundName, matches]) => {
+    const played = matches.filter(m => state.results[m.id]);
+    if(played.length === 0) return;
+
+    html += `<div class="round-title">${getRoundIcon(matches[0].roundKey)} ${roundName}</div>`;
+
+    played.forEach(m => {
+      const r = state.results[m.id];
+      const coeff = ROUND_COEFFICIENTS[m.roundKey] || 1;
+      const kt = state.knockoutTeams[m.id] || {};
+      const homeTeam = kt.home || m.home;
+      const awayTeam = kt.away || m.away;
+
+      const pronosForMatch = state.players.map(p => {
+        const prono = (state.pronos[p.id] || {})[m.id];
+        const pts = prono ? calcPoints(prono, r, m.roundKey) : null;
+        return { player: p, prono, pts };
+      }).filter(x => x.prono);
+
+      const perfect = pronosForMatch.filter(x => x.pts >= 5 * coeff).length;
+      const good = pronosForMatch.filter(x => x.pts > 0 && x.pts < 5 * coeff).length;
+      const zero = pronosForMatch.filter(x => x.pts === 0).length;
+      const total = pronosForMatch.length;
+      const uid = 'res-' + m.id;
+
+      const pronосRows = pronosForMatch.sort((a,b) => b.pts - a.pts).map(({player, prono, pts}) => {
+        const cls = pts >= 5*coeff ? 'pts-perfect' : pts > 0 ? 'pts-good' : 'pts-zero';
+        const icon = pts >= 5*coeff ? '⭐' : pts > 0 ? '✅' : '❌';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--dark3);padding:8px 12px;border-radius:10px;gap:8px">'
+          + '<div style="display:flex;align-items:center;gap:8px;min-width:0">'
+          + '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;flex-shrink:0;background:linear-gradient(135deg,' + player.color + ',' + player.color + '88)">' + getInitials(player).toUpperCase() + '</div>'
+          + '<div style="min-width:0">'
+          + '<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + player.prenom + ' ' + player.nom + '</div>'
+          + '<div style="font-size:12px;color:var(--muted)">' + icon + ' ' + prono.home + ' — ' + prono.away + '</div>'
+          + '</div></div>'
+          + '<span class="points-badge ' + cls + '" style="flex-shrink:0">' + pts + ' pts</span>'
+          + '</div>';
+      }).join('');
+
+      html += '<div class="admin-section" style="margin-bottom:10px;padding:0;overflow:hidden">'
+        + '<div onclick="toggleResult(\'' + uid + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;gap:12px;flex-wrap:wrap">'
+        + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+        + '<span style="font-size:22px">' + homeTeam.flag + '</span>'
+        + '<span style="font-weight:700;font-size:14px">' + homeTeam.name + '</span>'
+        + '<span style="font-family:\'Bebas Neue\';font-size:22px;padding:4px 14px;background:var(--dark3);border-radius:8px;letter-spacing:2px">' + r.home + ' — ' + r.away + '</span>'
+        + '<span style="font-weight:700;font-size:14px">' + awayTeam.name + '</span>'
+        + '<span style="font-size:22px">' + awayTeam.flag + '</span>'
+        + (coeff > 1 ? '<span class="chip active">Coeff ' + ROUND_LABELS[m.roundKey] + '</span>' : '')
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0">'
+        + '<div style="display:flex;gap:6px">'
+        + (perfect > 0 ? '<span class="points-badge pts-perfect">⭐ ' + perfect + '</span>' : '')
+        + (good > 0 ? '<span class="points-badge pts-good">✅ ' + good + '</span>' : '')
+        + (zero > 0 ? '<span class="points-badge pts-zero">❌ ' + zero + '</span>' : '')
+        + (total === 0 ? '<span style="font-size:12px;color:var(--muted)">Aucun prono</span>' : '')
+        + '</div>'
+        + '<span id="arrow-' + uid + '" style="color:var(--muted);font-size:16px;transition:transform 0.2s">▼</span>'
+        + '</div></div>'
+        + '<div id="' + uid + '" style="display:none;border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px">'
+        + (total > 0
+          ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">' + pronосRows + '</div>'
+          : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:8px 0">Aucun participant n\'a pronostiqué ce match</div>')
+        + '</div></div>';
+    });
+  });
+
+  if(!html) {
+    html = '<div class="empty-state"><div class="icon">📋</div><div>Aucun résultat saisi pour l\'instant</div></div>';
+  }
+
+  document.getElementById('resultats-container').innerHTML = html;
+}
+
+function toggleResult(uid) {
+  const panel = document.getElementById(uid);
+  const arrow = document.getElementById('arrow-' + uid);
+  if(!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+
+// ==========================================
+// ADMIN — MOT DE PASSE & GESTION JOUEURS
+// ==========================================
+
+const ADMIN_HASH = 'a7f3c2e1b9d4e8f2a1c5d3b7e9f2a4c6d8e1b3f5a7c9d2e4b6f8a1c3d5e7b9f2'; // obfuscé
+
+function checkAdminPwd() {
+  const val = document.getElementById('admin-pwd-input').value;
+  // On compare directement (suffisant pour usage interne)
+  if(val === 'math-suitcase-rundown-pastime-borrower-buckle') {
+    document.getElementById('admin-lock').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+    renderPlayersAdmin();
+    renderAdmin();
+  } else {
+    document.getElementById('admin-pwd-input').style.borderColor = 'var(--red)';
+    showToast('❌ Mot de passe incorrect', 'error');
+    setTimeout(() => document.getElementById('admin-pwd-input').style.borderColor = '', 1500);
+  }
+}
+
+function renderPlayersAdmin() {
+  const container = document.getElementById('players-admin-list');
+  if(!state.players.length) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:14px">Aucun joueur inscrit.</div>';
+    return;
+  }
+
+  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  state.players.forEach(p => {
+    const pronosCount = Object.keys(state.pronos[p.id] || {}).length;
+    html += `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--dark3);border-radius:10px;padding:10px 14px;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="player-avatar" style="width:34px;height:34px;font-size:13px;background:linear-gradient(135deg,${p.color},${p.color}88)">${getInitials(p).toUpperCase()}</div>
+        <div>
+          <div style="font-weight:600;font-size:14px">${p.prenom} ${p.nom}</div>
+          <div style="font-size:11px;color:var(--muted)">${pronosCount} pronostic(s) · inscrit le ${new Date(p.createdAt).toLocaleDateString('fr-FR')}</div>
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deletePlayer('${p.id}')">🗑️ Supprimer</button>
+        <button class="btn btn-outline btn-sm" onclick="resetPin('${p.id}')">🔑 Réinitialiser PIN</button>
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+let _resetPinPlayerId = null;
+
+function resetPin(playerId) {
+  const player = state.players.find(p => p.id === playerId);
+  if(!player) return;
+  _resetPinPlayerId = playerId;
+  document.getElementById('modal-player-name').textContent = player.prenom + ' ' + player.nom;
+  document.getElementById('modal-new-pin').value = '';
+  document.getElementById('modal-new-pin2').value = '';
+  const overlay = document.getElementById('modal-overlay');
+  overlay.style.display = 'flex';
+  setTimeout(() => document.getElementById('modal-new-pin').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  _resetPinPlayerId = null;
+}
+
+async function confirmResetPin() {
+  const newPin = document.getElementById('modal-new-pin').value.trim();
+  const newPin2 = document.getElementById('modal-new-pin2').value.trim();
+
+  if(!newPin || newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+    document.getElementById('modal-new-pin').style.borderColor = 'var(--red)';
+    setTimeout(() => document.getElementById('modal-new-pin').style.borderColor = '', 1500);
+    showToast('PIN invalide — 4 chiffres requis', 'error'); return;
+  }
+  if(newPin !== newPin2) {
+    document.getElementById('modal-new-pin2').style.borderColor = 'var(--red)';
+    setTimeout(() => document.getElementById('modal-new-pin2').style.borderColor = '', 1500);
+    showToast('Les deux PIN ne correspondent pas', 'error'); return;
+  }
+
+  const player = state.players.find(p => p.id === _resetPinPlayerId);
+  if(!player) return;
+
+  player.pinHash = await hashPin(newPin);
+  closeModal();
+  dbSave().then(() => {
+    showToast(`✅ PIN réinitialisé pour ${player.prenom} ${player.nom}`, 'success');
+    renderPlayersAdmin();
+  });
+}
+
+function deletePlayer(playerId) {
+  const player = state.players.find(p => p.id === playerId);
+  if(!player) return;
+  if(!confirm(`Supprimer ${player.prenom} ${player.nom} et tous ses pronos ? Cette action est irréversible.`)) return;
+
+  // Supprimer le joueur
+  state.players = state.players.filter(p => p.id !== playerId);
+  // Supprimer ses pronos
+  delete state.pronos[playerId];
+
+  dbSave().then(() => {
+    showToast(`✅ ${player.prenom} ${player.nom} supprimé`, 'success');
+    renderPlayersAdmin();
+  });
+}
+
+
+
+function renderAdmin() {
+  const PHASE_LABELS = { r32:'32es de finale', r16:'Huitièmes de finale', qf:'Quarts de finale', sf:'Demi-finales', final:'Finale' };
+  const rounds = {};
+  ALL_MATCHES.forEach(m => {
+    if(!rounds[m.round]) rounds[m.round] = [];
+    rounds[m.round].push(m);
+  });
+
+  let html = '';
+
+  // ---- SECTION DÉBLOCAGE DES PHASES ----
+  html += `<div class="admin-section" style="margin-bottom:20px">
+    <div class="admin-title">🔓 Débloquer les phases éliminatoires</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Débloquez chaque phase quand les équipes qualifiées sont connues. Vous pourrez saisir les noms des équipes au moment du déblocage.</div>`;
+
+  ['r32','r16','qf','sf','final'].forEach(key => {
+    const isUnlocked = state.unlockedPhases[key];
+    const label = PHASE_LABELS[key];
+    const coeff = ROUND_LABELS[key];
+    html += `<div style="background:var(--dark3);border-radius:12px;padding:14px 18px;margin-bottom:10px;border:1px solid ${isUnlocked ? 'rgba(37,163,85,0.4)' : 'rgba(255,255,255,0.06)'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:600;font-size:14px">${getRoundIcon(key)} ${label} <span class="chip active" style="margin-left:6px">${coeff}</span></div>
+          <div style="font-size:12px;color:${isUnlocked ? 'var(--green-light)' : 'var(--muted)'}">
+            ${isUnlocked ? '✅ Phase ouverte aux pronostics' : '🔒 Verrouillée — pronos impossibles'}
+          </div>
+        </div>
+        ${!isUnlocked
+          ? `<button class="btn btn-gold btn-sm" onclick="unlockPhase('${key}')">🔓 Débloquer</button>`
+          : `<button class="btn btn-danger btn-sm" onclick="lockPhase('${key}')">🔒 Reverrouiller</button>`
+        }
+      </div>
+      ${isUnlocked ? renderTeamInputs(key) : ''}
+    </div>`;
+  });
+
+  html += `</div>`;
+
+  // ---- SECTION RÉSULTATS PAR PHASE ----
+  Object.entries(rounds).forEach(([roundName, matches]) => {
+    const roundKey = matches[0].roundKey;
+    const isUnlocked = state.unlockedPhases[roundKey];
+    if(!isUnlocked && roundKey !== 'group') return; // cacher phases verrouillées
+
+    html += `<div class="admin-section">`;
+    html += `<div class="admin-title">${getRoundIcon(roundKey)} ${roundName} — Saisie des résultats</div>`;
+
+    matches.forEach(m => {
+      const r = state.results[m.id] || {};
+      const kt = state.knockoutTeams[m.id] || {};
+      const homeTeam = kt.home || m.home;
+      const awayTeam = kt.away || m.away;
+      html += `<div class="result-row" id="rr-${m.id}">
+        <div class="team-label right">${homeTeam.flag} ${homeTeam.name}</div>
+        <input type="number" class="score-input" style="width:48px" id="rh-${m.id}" min="0" max="20" placeholder="?" value="${r.home !== undefined ? r.home : ''}">
+        <div class="sep-dash">—</div>
+        <input type="number" class="score-input" style="width:48px" id="ra-${m.id}" min="0" max="20" placeholder="?" value="${r.away !== undefined ? r.away : ''}">
+        <div class="team-label">${awayTeam.name} ${awayTeam.flag}</div>
+        <button class="btn btn-green btn-sm" onclick="saveResult('${m.id}')">✓</button>
+      </div>`;
+    });
+
+    html += '</div>';
+  });
+
+  document.getElementById('admin-container').innerHTML = html;
+}
+
+function renderTeamInputs(phaseKey) {
+  const phaseMatches = KNOCKOUT_MATCHES.filter(m => m.roundKey === phaseKey);
+  let html = `<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px">
+    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Équipes qualifiées (optionnel — remplace les étiquettes génériques)</div>`;
+
+  phaseMatches.forEach(m => {
+    const kt = state.knockoutTeams[m.id] || {};
+    const homeVal = kt.home ? `${kt.home.flag} ${kt.home.name}` : '';
+    const awayVal = kt.away ? `${kt.away.flag} ${kt.away.name}` : '';
+    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--muted);min-width:60px">Match ${m.id.replace('r16_','H').replace('qf_','Q').replace('sf_','D').replace('final','F')}</span>
+      <input type="text" id="kt-h-${m.id}" placeholder="Ex: 🇫🇷 France" value="${homeVal}" style="flex:1;min-width:120px;font-size:13px;padding:7px 10px">
+      <span style="color:var(--muted)">vs</span>
+      <input type="text" id="kt-a-${m.id}" placeholder="Ex: 🇧🇷 Brésil" value="${awayVal}" style="flex:1;min-width:120px;font-size:13px;padding:7px 10px">
+      <button class="btn btn-outline btn-sm" onclick="saveKnockoutTeams('${m.id}')">✓</button>
+    </div>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+function parseTeamInput(val) {
+  const trimmed = val.trim();
+  if(!trimmed) return null;
+  // Try to detect emoji flag at start
+  const flagMatch = trimmed.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s*/u);
+  if(flagMatch) {
+    return { flag: flagMatch[0].trim(), name: trimmed.slice(flagMatch[0].length).trim() || trimmed };
+  }
+  return { flag: '⚽', name: trimmed };
+}
+
+function saveKnockoutTeams(matchId) {
+  const hVal = document.getElementById('kt-h-'+matchId)?.value || '';
+  const aVal = document.getElementById('kt-a-'+matchId)?.value || '';
+  const home = parseTeamInput(hVal);
+  const away = parseTeamInput(aVal);
+  if(home || away) {
+    state.knockoutTeams[matchId] = { home: home || state.knockoutTeams[matchId]?.home, away: away || state.knockoutTeams[matchId]?.away };
+    dbSave().then(() => showToast('✅ Équipes enregistrées !', 'success'));
+  }
+}
+
+function unlockPhase(key) {
+  state.unlockedPhases[key] = true;
+  dbSave().then(() => {
+    showToast(`✅ Phase débloquée !`, 'success');
+    renderAdmin();
+  });
+}
+
+function lockPhase(key) {
+  if(!confirm(`Reverrouiller cette phase ? Les participants ne pourront plus saisir de pronos pour ces matchs.`)) return;
+  state.unlockedPhases[key] = false;
+  dbSave().then(() => {
+    showToast('🔒 Phase reverrouillée', 'success');
+    renderAdmin();
+  });
+}
+
+function saveResult(matchId) {
+  const h = document.getElementById('rh-'+matchId).value;
+  const a = document.getElementById('ra-'+matchId).value;
+  if(h === '' || a === '') { showToast('Entrez les 2 scores', 'error'); return; }
+  state.results[matchId] = { home: parseInt(h), away: parseInt(a) };
+  save('results', state.results);
+  showToast('✅ Résultat enregistré !', 'success');
+
+  // Highlight row
+  const row = document.getElementById('rr-'+matchId);
+  if(row) {
+    row.style.background = 'rgba(37,163,85,0.08)';
+    setTimeout(() => row.style.background = '', 1500);
+  }
+}
+
+// ==========================================
+// UTILS
+// ==========================================
+
+function getRoundIcon(key) {
+  const icons = { group:'🟢', r32:'⚡', r16:'💥', qf:'🔥', sf:'🌟', final:'🏆' };
+  return icons[key] || '⚽';
+}
+
+function showToast(msg, type='success') {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
   t.className = `toast ${type}`;
   t.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> <span>${msg}</span>`;
   c.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
-// --- INIT ---
+function exportData() {
+  const data = {
+    players: state.players,
+    pronos: state.pronos,
+    results: state.results,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'prono2026_backup.json';
+  a.click();
+  showToast('Export téléchargé !', 'success');
+}
+
+function resetAllData() {
+  if(!confirm('⚠️ ATTENTION : ceci effacera TOUS les joueurs, pronos et résultats. Cette action est irréversible. Continuer ?')) return;
+  state.players = [];
+  state.pronos = {};
+  state.results = {};
+  dbSave().then(() => location.reload());
+}
+
+// ==========================================
+// INIT
+// ==========================================
+
 async function init() {
   const data = await dbLoad();
   state.players = data.players || [];
   state.pronos = data.pronos || {};
   state.results = data.results || {};
+  state.unlockedPhases = data.unlockedPhases || { group: true, r32: false, r16: false, qf: false, sf: false, final: false };
+  state.knockoutTeams = data.knockoutTeams || {};
   refreshPlayerSelect();
 }
 
-window.onload = init;
+init();
 </script>
 </body>
 </html>
