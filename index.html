@@ -37,168 +37,374 @@
     content:'';
     position:fixed;
     inset:0;
-    background:
+    background: 
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(26,122,60,0.25) 0%, transparent 60%),
       radial-gradient(ellipse 60% 40% at 80% 100%, rgba(245,200,66,0.08) 0%, transparent 50%);
     pointer-events:none;
     z-index:0;
   }
 
-  /* ---- HEADER ---- */
   header {
-    position:relative;
-    z-index:10;
-    padding: 28px 24px 20px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
+    position:relative; z-index:10; padding: 28px 24px 20px;
+    display:flex; align-items:center; justify-content:space-between;
     border-bottom: 1px solid var(--border);
-    background: rgba(10,15,26,0.8);
-    backdrop-filter: blur(12px);
-    position: sticky;
-    top:0;
+    background: rgba(10,15,26,0.8); backdrop-filter: blur(12px);
+    position: sticky; top:0;
   }
 
-  .logo {
-    display:flex;
-    align-items:center;
-    gap:12px;
-  }
-
+  .logo { display:flex; align-items:center; gap:12px; }
   .logo-icon {
     width:44px; height:44px;
     background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-    box-shadow: 0 4px 20px rgba(245,200,66,0.3);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:22px; box-shadow: 0 4px 20px rgba(245,200,66,0.3);
   }
+  .logo-text { font-family:'Bebas Neue', cursive; font-size:26px; letter-spacing:2px; color:var(--gold); line-height:1; }
+  .logo-sub { font-size:11px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; }
 
-  .logo-text {
-    font-family:'Bebas Neue', cursive;
-    font-size:26px;
-    letter-spacing:2px;
-    color:var(--gold);
-    line-height:1;
-  }
+  #user-badge { display:none; align-items:center; gap:8px; background: var(--card2); border:1px solid var(--border); border-radius:30px; padding:8px 16px; font-size:14px; font-weight:500; }
+  #user-badge .avatar { width:28px; height:28px; background: linear-gradient(135deg, var(--green-light), var(--gold)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--dark); }
 
-  .logo-sub {
-    font-size:11px;
-    color:var(--muted);
-    letter-spacing:3px;
-    text-transform:uppercase;
-  }
-
-  .header-right {
-    display:flex;
-    align-items:center;
-    gap:12px;
-  }
-
-  #user-badge {
-    display:none;
-    align-items:center;
-    gap:8px;
-    background: var(--card2);
-    border:1px solid var(--border);
-    border-radius:30px;
-    padding:8px 16px;
-    font-size:14px;
-    font-weight:500;
-  }
-
-  #user-badge .avatar {
-    width:28px; height:28px;
-    background: linear-gradient(135deg, var(--green-light), var(--gold));
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
-    font-weight:700;
-    color:var(--dark);
-  }
-
-  /* ---- NAV TABS ---- */
-  .nav-tabs {
-    display:flex;
-    gap:4px;
-    padding:0 24px;
-    background: rgba(10,15,26,0.6);
-    border-bottom: 1px solid var(--border);
-    overflow-x:auto;
-    scrollbar-width:none;
-    position:sticky;
-    top:85px;
-    z-index:9;
-    backdrop-filter:blur(12px);
-  }
-
+  .nav-tabs { display:flex; gap:4px; padding:0 24px; background: rgba(10,15,26,0.6); border-bottom: 1px solid var(--border); overflow-x:auto; scrollbar-width:none; position:sticky; top:85px; z-index:9; backdrop-filter:blur(12px); }
   .nav-tabs::-webkit-scrollbar { display:none; }
+  .tab-btn { padding:14px 20px; background:none; border:none; color:var(--muted); font-family:'Outfit',sans-serif; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; transition:all 0.2s; letter-spacing:0.5px; text-transform:uppercase; }
+  .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
 
-  .tab-btn {
-    padding:14px 20px;
-    background:none;
-    border:none;
-    color:var(--muted);
-    font-family:'Outfit',sans-serif;
-    font-size:13px;
-    font-weight:500;
-    cursor:pointer;
-    white-space:nowrap;
-    border-bottom:2px solid transparent;
-    transition:all 0.2s;
-    letter-spacing:0.5px;
-    text-transform:uppercase;
-  }
-
-  .tab-btn:hover { color:var(--text); }
-  .tab-btn.active {
-    color:var(--gold);
-    border-bottom-color:var(--gold);
-  }
-
-  /* ---- MAIN CONTENT ---- */
-  main {
-    position:relative;
-    z-index:1;
-    max-width:960px;
-    margin:0 auto;
-    padding:32px 20px 80px;
-  }
-
+  main { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:32px 20px 80px; }
   .page { display:none; }
   .page.active { display:block; }
 
-  /* ---- SECTION TITLES ---- */
-  .section-title {
-    font-family:'Bebas Neue', cursive;
-    font-size:36px;
-    letter-spacing:3px;
-    color:var(--gold);
-    margin-bottom:6px;
-  }
+  .section-title { font-family:'Bebas Neue', cursive; font-size:36px; letter-spacing:3px; color:var(--gold); margin-bottom:6px; }
+  .section-sub { color:var(--muted); font-size:14px; margin-bottom:28px; }
 
-  .section-sub {
-    color:var(--muted);
-    font-size:14px;
-    margin-bottom:28px;
-  }
+  /* Login */
+  #page-login { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; text-align:center; }
+  .login-card { background: var(--card); border:1px solid var(--border); border-radius:20px; padding:36px; width:100%; max-width:400px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .field-group { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; text-align:left; }
+  .field-group label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  input[type=text], input[type=password], input[type=number], select { background: var(--dark3); border: 1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; color:var(--text); font-family:'Outfit',sans-serif; font-size:15px; outline:none; transition:border-color 0.2s; width:100%; }
+  
+  .btn { padding:12px 24px; border:none; border-radius:10px; font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; letter-spacing:0.5px; }
+  .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color:var(--dark); box-shadow: 0 4px 20px rgba(245,200,66,0.3); }
+  .btn-full { width:100%; }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
 
-  /* ---- LOGIN PAGE ---- */
-  #page-login {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    min-height:70vh;
-    text-align:center;
-  }
+  /* Matches */
+  .round-title { font-family:'Bebas Neue', cursive; font-size:22px; letter-spacing:2px; color:var(--gold); margin: 28px 0 12px; display:flex; align-items:center; gap:10px; }
+  .round-title::after { content:''; flex:1; height:1px; background: linear-gradient(to right, var(--border), transparent); }
+  .match-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap:12px; margin-bottom:10px; }
+  .team-side { display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; }
+  .team-flag { font-size:32px; line-height:1; }
+  .team-name { font-size:12px; font-weight:600; color:var(--text); letter-spacing:0.5px; text-transform:uppercase; }
+  .score-input { width:48px !important; text-align:center; font-size:20px !important; font-weight:700 !important; padding:8px 4px !important; }
 
-  .login-trophy {
-    font-size:80px;
-    margin-bottom:16px;
-    filter:drop-shadow(0 0 30px rgba(245,200,66,0.4));
-    animation:
+  /* Board */
+  .scoreboard { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .sb-row { display:grid; grid-template-columns: 40px 1fr 80px; padding:14px 20px; border-top:1px solid rgba(255,255,255,0.04); align-items:center; }
+  .rank { font-weight:700; color:var(--gold); }
+
+  .toast-container { position:fixed; bottom:24px; right:24px; z-index:999; display:flex; flex-direction:column; gap:8px; }
+  .toast { background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:12px 18px; font-size:14px; box-shadow:0 8px 30px rgba(0,0,0,0.4); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚽</div>
+    <div>
+      <div class="logo-text">Prono 2026</div>
+      <div class="logo-sub">Coupe du Monde</div>
+    </div>
+  </div>
+  <div id="user-badge">
+    <div class="avatar" id="user-avatar">?</div>
+    <span id="user-name-display"></span>
+  </div>
+</header>
+
+<nav class="nav-tabs" id="main-nav" style="display:none">
+  <button class="tab-btn active" onclick="showTab('pronos')">🎯 Mes Pronos</button>
+  <button class="tab-btn" onclick="showTab('classement')">🏆 Classement</button>
+  <button class="tab-btn" onclick="showTab('admin')">⚙️ Admin</button>
+</nav>
+
+<main>
+  <div class="page active" id="page-login">
+    <div class="login-card">
+      <div class="section-title">Connexion</div>
+      <div id="login-select">
+        <div class="field-group">
+          <label>Profil</label>
+          <select id="select-player" onchange="onSelectPlayer()"><option value="">— Choisir —</option></select>
+        </div>
+        <div class="field-group">
+          <label>PIN (4 chiffres)</label>
+          <input type="password" id="input-login-pin" maxlength="4" placeholder="••••">
+        </div>
+        <button class="btn btn-gold btn-full" onclick="loginExisting()" style="margin-bottom:12px">Entrer ✓</button>
+        <button class="btn btn-outline btn-full" onclick="toggleRegister()">Nouveau Profil +</button>
+      </div>
+      <div id="login-register" style="display:none">
+        <div class="field-group"><label>Prénom Nom</label><input type="text" id="input-name"></div>
+        <div class="field-group"><label>PIN (4 chiffres)</label><input type="password" id="input-pin" maxlength="4"></div>
+        <button class="btn btn-gold btn-full" onclick="registerPlayer()" style="margin-bottom:12px">Créer Profil →</button>
+        <button class="btn btn-outline btn-full" onclick="toggleRegister()">Retour</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-pronos">
+    <div class="section-title">MES PRONOS</div>
+    <div id="pronos-container"></div>
+    <button class="btn btn-gold btn-full" onclick="saveAllPronos()" style="margin-top:20px; padding:18px">💾 Sauvegarder tout</button>
+  </div>
+
+  <div class="page" id="page-classement">
+    <div class="section-title">CLASSEMENT</div>
+    <div class="scoreboard" id="ranking-list"></div>
+  </div>
+
+  <div class="page" id="page-admin">
+    <div id="admin-lock">
+        <div class="field-group"><label>Mot de passe admin</label><input type="password" id="admin-pwd-input"></div>
+        <button class="btn btn-gold" onclick="checkAdminPwd()">Accéder</button>
+    </div>
+    <div id="admin-content" style="display:none">
+        <div class="section-title">RESULTATS REELS</div>
+        <div id="admin-container"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ==========================================
+// DATA - TES GROUPES EXACTS
+// ==========================================
+const GROUPS = {
+  A: { teams: [{n: "Mexique", f: "🇲🇽"}, {n: "Afrique du Sud", f: "🇿🇦"}, {n: "Corée du Sud", f: "🇰🇷"}, {n: "Inconnu 1 (Eur. D)", f: "🏳️"}] },
+  B: { teams: [{n: "Canada", f: "🇨🇦"}, {n: "Inconnu 2 (Eur. A)", f: "🏳️"}, {n: "Qatar", f: "🇶🇦"}, {n: "Suisse", f: "🇨🇭"}] },
+  C: { teams: [{n: "Brésil", f: "🇧🇷"}, {n: "Maroc", f: "🇲🇦"}, {n: "Haïti", f: "🇭🇹"}, {n: "Ecosse", f: "🏴󠁧󠁢󠁳󠁣󠁴󠁿"}] },
+  D: { teams: [{n: "USA", f: "🇺🇸"}, {n: "Paraguay", f: "🇵🇾"}, {n: "Australie", f: "🇦🇺"}, {n: "Inconnu 3 (Eur. C)", f: "🏳️"}] },
+  E: { teams: [{n: "Allemagne", f: "🇩🇪"}, {n: "Curaçao", f: "🇨🇼"}, {n: "Côte d'Ivoire", f: "🇨🇮"}, {n: "Equateur", f: "🇪🇨"}] },
+  F: { teams: [{n: "Pays-Bas", f: "🇳🇱"}, {n: "Japon", f: "🇯🇵"}, {n: "Inconnu 4 (Eur. B)", f: "🏳️"}, {n: "Tunisie", f: "🇹🇳"}] },
+  G: { teams: [{n: "Belgique", f: "🇧🇪"}, {n: "Egypte", f: "🇪🇬"}, {n: "Iran", f: "🇮🇷"}, {n: "N-Zélande", f: "🇳🇿"}] },
+  H: { teams: [{n: "Espagne", f: "🇪🇸"}, {n: "Cap-Vert", f: "🇨🇻"}, {n: "Arabie Saoudite", f: "🇸🇦"}, {n: "Uruguay", f: "🇺🇾"}] },
+  I: { teams: [{n: "France", f: "🇫🇷"}, {n: "Sénégal", f: "🇸🇳"}, {n: "Inconnu 5 (Inter. 2)", f: "🏳️"}, {n: "Norvège", f: "🇳🇴"}] },
+  J: { teams: [{n: "Argentine", f: "🇦🇷"}, {n: "Algérie", f: "🇩🇿"}, {n: "Autriche", f: "🇦🇹"}, {n: "Jordanie", f: "🇯🇴"}] },
+  K: { teams: [{n: "Portugal", f: "🇵🇹"}, {n: "Inconnu 6 (Inter. 1)", f: "🏳️"}, {n: "Ouzbékistan", f: "🇺🇿"}, {n: "Colombie", f: "🇨🇴"}] },
+  L: { teams: [{n: "Angleterre", f: "🏴󠁧󠁢󠁥󠁮󠁧󠁿"}, {n: "Croatie", f: "🇭🇷"}, {n: "Ghana", f: "🇬🇭"}, {n: "Panama", f: "🇵🇦"}] }
+};
+
+// Generation des matchs basée sur tes groupes
+function generateMatches() {
+  const matches = [];
+  let id = 1;
+  Object.entries(GROUPS).forEach(([grp, {teams}]) => {
+    // Chaque groupe fait 2 matchs simulés pour l'interface (1vs2 et 3vs4)
+    matches.push({id: 'g'+id++, round: 'Groupe '+grp, home: teams[0], away: teams[1]});
+    matches.push({id: 'g'+id++, round: 'Groupe '+grp, home: teams[2], away: teams[3]});
+  });
+  return matches;
+}
+
+const ALL_MATCHES = generateMatches();
+
+// ==========================================
+// LOGIQUE APP (DB & UI)
+// ==========================================
+let state = {
+  user: null,
+  players: [],
+  pronos: {},
+  results: {}
+};
+
+// Sauvegarde dans LocalStorage (plus simple pour GitHub Pages)
+function dbSave() {
+  localStorage.setItem('prono2026_data', JSON.stringify({
+    players: state.players,
+    pronos: state.pronos,
+    results: state.results
+  }));
+}
+
+function dbLoad() {
+  const data = JSON.parse(localStorage.getItem('prono2026_data') || '{}');
+  state.players = data.players || [];
+  state.pronos = data.pronos || {};
+  state.results = data.results || {};
+  refreshPlayerSelect();
+}
+
+function refreshPlayerSelect() {
+  const sel = document.getElementById('select-player');
+  sel.innerHTML = '<option value="">— Choisir —</option>';
+  state.players.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+}
+
+function toggleRegister() {
+  const s = document.getElementById('login-select');
+  const r = document.getElementById('login-register');
+  s.style.display = s.style.display === 'none' ? 'block' : 'none';
+  r.style.display = r.style.display === 'none' ? 'block' : 'none';
+}
+
+function registerPlayer() {
+  const name = document.getElementById('input-name').value.trim();
+  const pin = document.getElementById('input-pin').value;
+  if(!name || pin.length < 4) return showToast("Nom et PIN requis (4 chiffres)", "error");
+  state.players.push({name, pin});
+  dbSave();
+  showToast("Compte créé !", "success");
+  toggleRegister();
+  refreshPlayerSelect();
+}
+
+function loginExisting() {
+  const name = document.getElementById('select-player').value;
+  const pin = document.getElementById('input-login-pin').value;
+  const p = state.players.find(x => x.name === name && x.pin === pin);
+  if(p) {
+    state.user = name;
+    document.getElementById('page-login').classList.remove('active');
+    document.getElementById('main-nav').style.display = 'flex';
+    document.getElementById('user-badge').style.display = 'flex';
+    document.getElementById('user-name-display').textContent = name;
+    showTab('pronos');
+    renderPronos();
+  } else {
+    showToast("PIN incorrect", "error");
+  }
+}
+
+function showTab(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelector(`[onclick="showTab('${id}')"]`).classList.add('active');
+  if(id === 'classement') renderRanking();
+  if(id === 'admin') renderAdmin();
+}
+
+function renderPronos() {
+  const container = document.getElementById('pronos-container');
+  container.innerHTML = '';
+  let currentRound = '';
+  
+  const userPronos = state.pronos[state.user] || {};
+
+  ALL_MATCHES.forEach(m => {
+    if(m.round !== currentRound) {
+      currentRound = m.round;
+      container.innerHTML += `<div class="round-title">${currentRound}</div>`;
+    }
+    const s1 = userPronos[m.id]?.s1 ?? "";
+    const s2 = userPronos[m.id]?.s2 ?? "";
+    
+    container.innerHTML += `
+      <div class="match-card">
+        <div class="team-side"><span class="team-flag">${m.home.f}</span><span class="team-name">${m.home.n}</span></div>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input type="number" class="score-input" id="p1_${m.id}" value="${s1}">
+          <span style="color:var(--muted)">VS</span>
+          <input type="number" class="score-input" id="p2_${m.id}" value="${s2}">
+        </div>
+        <div class="team-side"><span class="team-flag">${m.away.f}</span><span class="team-name">${m.away.n}</span></div>
+      </div>
+    `;
+  });
+}
+
+function saveAllPronos() {
+  if(!state.pronos[state.user]) state.pronos[state.user] = {};
+  ALL_MATCHES.forEach(m => {
+    const s1 = document.getElementById(`p1_${m.id}`).value;
+    const s2 = document.getElementById(`p2_${m.id}`).value;
+    if(s1 !== "" && s2 !== "") {
+      state.pronos[state.user][m.id] = {s1: parseInt(s1), s2: parseInt(s2)};
+    }
+  });
+  dbSave();
+  showToast("Pronostics enregistrés !", "success");
+}
+
+function renderRanking() {
+  const list = document.getElementById('ranking-list');
+  let scores = state.players.map(p => {
+    let pts = 0;
+    const pPronos = state.pronos[p.name] || {};
+    Object.keys(state.results).forEach(mid => {
+      const res = state.results[mid];
+      const pro = pPronos[mid];
+      if(res && pro && res.s1 !== null && pro.s1 !== null) {
+        if(res.s1 === pro.s1 && res.s2 === pro.s2) pts += 5; // Exact
+        else if(Math.sign(res.s1 - res.s2) === Math.sign(pro.s1 - pro.s2)) pts += 2; // Gagnant
+      }
+    });
+    return {name: p.name, pts};
+  });
+  
+  scores.sort((a,b) => b.pts - a.pts);
+  list.innerHTML = scores.map((s, i) => `
+    <div class="sb-row">
+      <div class="rank">#${i+1}</div>
+      <div style="font-weight:600">${s.name}</div>
+      <div style="text-align:right; color:var(--gold); font-weight:700">${s.pts} pts</div>
+    </div>
+  `).join('');
+}
+
+function checkAdminPwd() {
+  if(document.getElementById('admin-pwd-input').value === '2026') {
+    document.getElementById('admin-lock').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+    renderAdmin();
+  }
+}
+
+function renderAdmin() {
+  const container = document.getElementById('admin-container');
+  container.innerHTML = '';
+  ALL_MATCHES.forEach(m => {
+    const res = state.results[m.id] || {s1:"", s2:""};
+    container.innerHTML += `
+      <div class="match-card" style="border-color:var(--blue)">
+        <div class="team-side"><span>${m.home.n}</span></div>
+        <div style="display:flex; gap:5px">
+          <input type="number" class="score-input" value="${res.s1}" onchange="updateResult('${m.id}', 1, this.value)">
+          <input type="number" class="score-input" value="${res.s2}" onchange="updateResult('${m.id}', 2, this.value)">
+        </div>
+        <div class="team-side"><span>${m.away.n}</span></div>
+      </div>
+    `;
+  });
+}
+
+function updateResult(mid, side, val) {
+  if(!state.results[mid]) state.results[mid] = {s1:null, s2:null};
+  state.results[mid]['s'+side] = val === "" ? null : parseInt(val);
+  dbSave();
+}
+
+function showToast(msg, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.borderLeft = type === 'success' ? '4px solid var(--green-light)' : '4px solid var(--red)';
+  t.innerHTML = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+window.onload = dbLoad;
+</script>
+</body>
+</html>
