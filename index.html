@@ -1374,7 +1374,6 @@ function renderPronos() {
   const uid = state.currentUser.id;
   const myPronos = state.pronos[uid] || {};
 
-  // Group matches by round label
   const rounds = {};
   ALL_MATCHES.forEach(m => {
     if(!rounds[m.round]) rounds[m.round] = [];
@@ -1385,70 +1384,104 @@ function renderPronos() {
   Object.entries(rounds).forEach(([roundName, matches]) => {
     const roundKey = matches[0].roundKey;
     const isUnlocked = state.unlockedPhases[roundKey];
+    const uid2 = 'prono-' + roundKey + '-' + roundName.replace(/\s/g,'_');
 
-    html += `<div class="round-title">${getRoundIcon(roundKey)} ${roundName}`;
-    if(!isUnlocked) html += ` <span style="font-size:13px;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:500">🔒 Phase verrouillée</span>`;
-    html += `</div>`;
+    // Comptage pour le résumé dans l'en-tête
+    const total = matches.length;
+    const done = matches.filter(m => myPronos[m.id] && myPronos[m.id].home !== '' && myPronos[m.id].away !== '').length;
+    const closed = matches.every(m => isMatchClosed(m));
+    const allDone = done === total;
+
+    const statusChip = !isUnlocked
+      ? `<span style="font-size:12px;color:var(--muted)">🔒 Verrouillée</span>`
+      : allDone
+        ? `<span style="font-size:12px;color:var(--green-light)">✅ ${done}/${total}</span>`
+        : `<span style="font-size:12px;color:${done>0?'var(--gold)':'var(--muted)'}">${done}/${total} saisis</span>`;
+
+    // Groupes de poule ouverts par défaut, phases KO repliées
+    const defaultOpen = (roundKey === 'group' || (isUnlocked && done < total));
+
+    html += `
+    <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
+      <div onclick="togglePronoSection('${uid2}')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--card2);gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">${getRoundIcon(roundKey)}</span>
+          <span style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1.5px">${roundName}</span>
+          ${statusChip}
+        </div>
+        <span id="parrow-${uid2}" style="color:var(--muted);font-size:16px;transition:transform 0.2s">${defaultOpen ? '▲' : '▼'}</span>
+      </div>
+      <div id="${uid2}" style="display:${defaultOpen ? 'block' : 'none'};background:var(--card)">`;
 
     if(!isUnlocked) {
-      html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:8px">
+      html += `<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px">
         🔒 Cette phase sera débloquée par l'admin une fois les équipes qualifiées connues.
       </div>`;
-      return;
+    } else {
+      html += `<div class="matches-grid" style="padding:12px">`;
+      matches.forEach(m => {
+        const p = myPronos[m.id];
+        const hasProno = p !== undefined && p.home !== '' && p.away !== '';
+        const isKO = m.roundKey !== 'group';
+        const isClosed = isMatchClosed(m);
+        const kt = state.knockoutTeams[m.id] || {};
+        const homeTeam = kt.home || m.home;
+        const awayTeam = kt.away || m.away;
+
+        const cardClass = isClosed ? 'match-card closed-match' : (hasProno ? 'match-card has-prono' : 'match-card');
+        const inputDisabled = isClosed ? 'disabled' : '';
+        const statusHtml = isClosed
+          ? `<div style="font-size:11px;color:var(--red);font-weight:600">🔒 Pronos fermés</div>`
+          : (hasProno
+              ? `<div class="prono-saved">✅ Enregistré</div>`
+              : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`);
+
+        html += `
+        <div class="${cardClass}" id="mc-${m.id}">
+          <div class="team-side">
+            <div class="team-flag">${homeTeam.flag}</div>
+            <div class="team-name">${homeTeam.name}</div>
+          </div>
+          <div class="match-center">
+            <div class="match-date">📅 ${m.date}</div>
+            <div class="score-input-group">
+              <input type="number" class="score-input" id="ph-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.home : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+              <span class="vs-sep">-</span>
+              <input type="number" class="score-input" id="pa-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.away : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+            </div>
+            ${statusHtml}
+            ${isKO ? `<div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>` : ''}
+          </div>
+          <div class="team-side">
+            <div class="team-flag">${awayTeam.flag}</div>
+            <div class="team-name">${awayTeam.name}</div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
     }
 
-    html += `<div class="matches-grid">`;
-    matches.forEach(m => {
-      const p = myPronos[m.id];
-      const hasProno = p !== undefined && p.home !== '' && p.away !== '';
-      const isKO = m.roundKey !== 'group';
-      const closed = isMatchClosed(m);
-      const kt = state.knockoutTeams[m.id] || {};
-      const homeTeam = kt.home || m.home;
-      const awayTeam = kt.away || m.away;
-
-      const cardClass = closed ? 'match-card closed-match' : (hasProno ? 'match-card has-prono' : 'match-card');
-      const inputDisabled = closed ? 'disabled' : '';
-      const statusHtml = closed
-        ? `<div style="font-size:11px;color:var(--red);font-weight:600">🔒 Pronos fermés</div>`
-        : (hasProno
-            ? `<div class="prono-saved">✅ Prono enregistré</div>`
-            : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`);
-
-      html += `
-      <div class="${cardClass}" id="mc-${m.id}">
-        <div class="team-side">
-          <div class="team-flag">${homeTeam.flag}</div>
-          <div class="team-name">${homeTeam.name}</div>
-        </div>
-        <div class="match-center">
-          <div class="match-date">📅 ${m.date}</div>
-          <div class="score-input-group">
-            <input type="number" class="score-input" id="ph-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.home : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
-            <span class="vs-sep">-</span>
-            <input type="number" class="score-input" id="pa-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.away : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
-          </div>
-          ${statusHtml}
-          ${isKO ? `<div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>` : ''}
-        </div>
-        <div class="team-side">
-          <div class="team-flag">${awayTeam.flag}</div>
-          <div class="team-name">${awayTeam.name}</div>
-        </div>
-      </div>`;
-    });
-    html += '</div>';
+    html += `</div></div>`;
   });
 
   document.getElementById('pronos-container').innerHTML = html;
 
   // Progress
-  const total = ALL_MATCHES.length;
-  const done = ALL_MATCHES.filter(m => myPronos[m.id] && myPronos[m.id].home !== '' && myPronos[m.id].away !== '').length;
-  document.getElementById('pronos-sub').innerHTML = `<span>${done}/${total} matchs pronos saisis</span>
+  const totalAll = ALL_MATCHES.length;
+  const doneAll = ALL_MATCHES.filter(m => myPronos[m.id] && myPronos[m.id].home !== '' && myPronos[m.id].away !== '').length;
+  document.getElementById('pronos-sub').innerHTML = `<span>${doneAll}/${totalAll} matchs pronos saisis</span>
     <div class="progress-bar" style="max-width:200px;display:inline-block;width:100%;vertical-align:middle;margin-left:10px">
-      <div class="progress-fill" style="width:${Math.round(done/total*100)}%"></div>
+      <div class="progress-fill" style="width:${Math.round(doneAll/totalAll*100)}%"></div>
     </div>`;
+}
+
+function togglePronoSection(uid) {
+  const panel = document.getElementById(uid);
+  const arrow = document.getElementById('parrow-' + uid);
+  if(!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
 }
 
 function autoSaveProno(matchId) {
@@ -1874,47 +1907,74 @@ function renderAdmin() {
   document.getElementById('admin-container').innerHTML = html;
 }
 
+// Liste des pays participants extraite dynamiquement des groupes
+const COUNTRIES = Object.values(GROUPS)
+  .flatMap(g => g.teams)
+  .filter((t,i,arr) => arr.findIndex(x => x.name === t.name) === i)
+  .sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+
 function renderTeamInputs(phaseKey) {
   const phaseMatches = KNOCKOUT_MATCHES.filter(m => m.roundKey === phaseKey);
+  const opts = COUNTRIES.map(c => `<option value="${c.name}|${c.flag}">${c.flag} ${c.name}</option>`).join('');
+
   let html = `<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px">
-    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Équipes qualifiées (optionnel — remplace les étiquettes génériques)</div>`;
+    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Équipes qualifiées</div>`;
 
   phaseMatches.forEach(m => {
     const kt = state.knockoutTeams[m.id] || {};
-    const homeVal = kt.home ? `${kt.home.flag} ${kt.home.name}` : '';
-    const awayVal = kt.away ? `${kt.away.flag} ${kt.away.name}` : '';
+    const hVal = kt.home ? `${kt.home.name}|${kt.home.flag}` : '';
+    const aVal = kt.away ? `${kt.away.name}|${kt.away.flag}` : '';
+    const label = m.id.replace('r32_','32e ').replace('r16_','H').replace('qf_','Q').replace('sf_','D').replace('final','Finale');
     html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--muted);min-width:60px">Match ${m.id.replace('r16_','H').replace('qf_','Q').replace('sf_','D').replace('final','F')}</span>
-      <input type="text" id="kt-h-${m.id}" placeholder="Ex: 🇫🇷 France" value="${homeVal}" style="flex:1;min-width:120px;font-size:13px;padding:7px 10px">
+      <span style="font-size:11px;color:var(--muted);min-width:60px">${label}</span>
+      <select id="kt-h-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+        <option value="">— Équipe domicile —</option>${opts}
+      </select>
       <span style="color:var(--muted)">vs</span>
-      <input type="text" id="kt-a-${m.id}" placeholder="Ex: 🇧🇷 Brésil" value="${awayVal}" style="flex:1;min-width:120px;font-size:13px;padding:7px 10px">
+      <select id="kt-a-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+        <option value="">— Équipe extérieur —</option>${opts}
+      </select>
       <button class="btn btn-outline btn-sm" onclick="saveKnockoutTeams('${m.id}')">✓</button>
     </div>`;
+    // Pre-select saved values
+    if(hVal || aVal) {
+      html += `<script>
+        (function(){
+          var sh = document.getElementById('kt-h-${m.id}');
+          var sa = document.getElementById('kt-a-${m.id}');
+          if(sh) { for(var o of sh.options) if(o.value==='${hVal}') { o.selected=true; break; } }
+          if(sa) { for(var o of sa.options) if(o.value==='${aVal}') { o.selected=true; break; } }
+        })();
+      <\/script>`;
+    }
   });
 
   html += `</div>`;
   return html;
 }
 
-function parseTeamInput(val) {
-  const trimmed = val.trim();
-  if(!trimmed) return null;
-  // Try to detect emoji flag at start
-  const flagMatch = trimmed.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s*/u);
-  if(flagMatch) {
-    return { flag: flagMatch[0].trim(), name: trimmed.slice(flagMatch[0].length).trim() || trimmed };
-  }
-  return { flag: '⚽', name: trimmed };
-}
-
 function saveKnockoutTeams(matchId) {
-  const hVal = document.getElementById('kt-h-'+matchId)?.value || '';
-  const aVal = document.getElementById('kt-a-'+matchId)?.value || '';
-  const home = parseTeamInput(hVal);
-  const away = parseTeamInput(aVal);
+  const hSel = document.getElementById('kt-h-'+matchId);
+  const aSel = document.getElementById('kt-a-'+matchId);
+  const hVal = hSel ? hSel.value : '';
+  const aVal = aSel ? aSel.value : '';
+
+  function parseVal(v) {
+    if(!v) return null;
+    const [name, flag] = v.split('|');
+    return { name, flag };
+  }
+
+  const home = parseVal(hVal);
+  const away = parseVal(aVal);
   if(home || away) {
-    state.knockoutTeams[matchId] = { home: home || state.knockoutTeams[matchId]?.home, away: away || state.knockoutTeams[matchId]?.away };
-    dbSave().then(() => showToast('✅ Équipes enregistrées !', 'success'));
+    if(!state.knockoutTeams[matchId]) state.knockoutTeams[matchId] = {};
+    if(home) state.knockoutTeams[matchId].home = home;
+    if(away) state.knockoutTeams[matchId].away = away;
+    dbSave().then(() => {
+      showToast('✅ Équipes enregistrées !', 'success');
+      renderAdmin();
+    });
   }
 }
 
