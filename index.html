@@ -737,8 +737,7 @@
       <div class="avatar" id="user-avatar">?</div>
       <span id="user-name-display"></span>
     </div>
-    <button class="btn btn-outline btn-sm" id="btn-change-user" style="display:none" onclick="showLogin()">Changer</button>
-    <span id="sync-status" style="font-size:11px; color:var(--muted); margin-left:4px"></span>
+    <button class="btn btn-outline btn-sm" id="btn-change-user" style="display:none" onclick="showLogin()">Déconnexion</button>
   </div>
 </header>
 
@@ -1147,10 +1146,7 @@ async function dbSave() {
 }
 
 function showSyncStatus(msg, type) {
-  let el = document.getElementById('sync-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = type === 'ok' ? 'var(--green-light)' : type === 'error' ? 'var(--red)' : 'var(--gold)';
+  // désactivé
 }
 
 // Compatibilité : save() appelle dbSave()
