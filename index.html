@@ -1,66 +1,204 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pronostics Coupe du Monde 2026</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
-        h1 { text-align: center; color: #004a99; }
-        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .group-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-top: 5px solid #004a99; }
-        .group-title { font-size: 1.4em; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; color: #d32f2f; }
-        .team { display: flex; align-items: center; margin-bottom: 10px; padding: 5px; border-radius: 5px; transition: background 0.2s; }
-        .team:hover { background-color: #f0f7ff; }
-        .flag { font-size: 1.5em; margin-right: 15px; width: 30px; text-align: center; }
-        .team-name { font-size: 1.1em; }
-        .unknown { color: #888; font-style: italic; }
-    </style>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ Prono 2026 — Coupe du Monde</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #F5C842;
+    --gold-dark: #C9960A;
+    --green: #1A7A3C;
+    --green-light: #25A355;
+    --dark: #0A0F1A;
+    --dark2: #111827;
+    --dark3: #1C2A3A;
+    --card: #162030;
+    --card2: #1E2D42;
+    --text: #E8EFF8;
+    --muted: #6B8299;
+    --red: #E84040;
+    --blue: #3B82F6;
+    --border: rgba(245,200,66,0.15);
+  }
 
-    <h1>🏆 Pronostics Coupe du Monde FIFA 2026</h1>
+  * { margin:0; padding:0; box-sizing:border-box; }
 
-    <div class="container" id="groups-container">
-        </div>
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-    <script>
-        const groupsData = [
-            { id: "A", teams: [{n: "Mexique", f: "🇲🇽"}, {n: "Afrique du Sud", f: "🇿🇦"}, {n: "Corée du Sud", f: "🇰🇷"}, {n: "Inconnu 1 (Barrage D)", f: "🏳️"}] },
-            { id: "B", teams: [{n: "Canada", f: "🇨🇦"}, {n: "Suisse", f: "🇨🇭"}, {n: "Qatar", f: "🇶🇦"}, {n: "Inconnu 2 (Barrage A)", f: "🏳️"}] },
-            { id: "C", teams: [{n: "Brésil", f: "🇧🇷"}, {n: "Maroc", f: "🇲🇦"}, {n: "Haïti", f: "🇭🇹"}, {n: "Écosse", f: "🏴󠁧󠁢󠁳󠁣󠁴󠁿"}] },
-            { id: "D", teams: [{n: "États-Unis", f: "🇺🇸"}, {n: "Australie", f: "🇦🇺"}, {n: "Paraguay", f: "🇵🇾"}, {n: "Inconnu 3 (Barrage C)", f: "🏳️"}] },
-            { id: "E", teams: [{n: "Allemagne", f: "🇩🇪"}, {n: "Équateur", f: "🇪🇨"}, {n: "Côte d'Ivoire", f: "🇨🇮"}, {n: "Curaçao", f: "🇨🇼"}] },
-            { id: "F", teams: [{n: "Pays-Bas", f: "🇳🇱"}, {n: "Japon", f: "🇯🇵"}, {n: "Tunisie", f: "🇹🇳"}, {n: "Inconnu 4 (Barrage B)", f: "🏳️"}] },
-            { id: "G", teams: [{n: "Belgique", f: "🇧🇪"}, {n: "Iran", f: "🇮🇷"}, {n: "Égypte", f: "🇪🇬"}, {n: "Nouvelle-Zélande", f: "🇳🇿"}] },
-            { id: "H", teams: [{n: "Espagne", f: "🇪🇸"}, {n: "Uruguay", f: "🇺🇾"}, {n: "Arabie Saoudite", f: "🇸🇦"}, {n: "Cap-Vert", f: "🇨🇻"}] },
-            { id: "I", teams: [{n: "France", f: "🇫🇷"}, {n: "Sénégal", f: "🇸🇳"}, {n: "Norvège", f: "🇳🇴"}, {n: "Inconnu 5 (Barrage Inter. 2)", f: "🏳️"}] },
-            { id: "J", teams: [{n: "Argentine", f: "🇦🇷"}, {n: "Autriche", f: "🇦🇹"}, {n: "Algérie", f: "🇩🇿"}, {n: "Jordanie", f: "🇯🇴"}] },
-            { id: "K", teams: [{n: "Portugal", f: "🇵🇹"}, {n: "Colombie", f: "🇨🇴"}, {n: "Ouzbékistan", f: "🇺🇿"}, {n: "Inconnu 6 (Barrage Inter. 1)", f: "🏳️"}] },
-            { id: "L", teams: [{n: "Angleterre", f: "🏴󠁧󠁢󠁥󠁮󠁧󠁿"}, {n: "Croatie", f: "🇭🇷"}, {n: "Panama", f: "🇵🇦"}, {n: "Ghana", f: "🇬🇭"}] }
-        ];
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(26,122,60,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(245,200,66,0.08) 0%, transparent 50%);
+    pointer-events:none;
+    z-index:0;
+  }
 
-        const container = document.getElementById('groups-container');
+  /* ---- HEADER ---- */
+  header {
+    position:relative;
+    z-index:10;
+    padding: 28px 24px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,15,26,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top:0;
+  }
 
-        groupsData.forEach(group => {
-            let groupHTML = `
-                <div class="group-card">
-                    <div class="group-title">Groupe ${group.id}</div>
-            `;
-            
-            group.teams.forEach(team => {
-                const isUnknown = team.f === "🏳️";
-                groupHTML += `
-                    <div class="team">
-                        <span class="flag">${team.f}</span>
-                        <span class="team-name ${isUnknown ? 'unknown' : ''}">${team.n}</span>
-                    </div>
-                `;
-            });
+  .logo {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
 
-            groupHTML += `</div>`;
-            container.innerHTML += groupHTML;
-        });
-    </script>
-</body>
-</html>
+  .logo-icon {
+    width:44px; height:44px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    box-shadow: 0 4px 20px rgba(245,200,66,0.3);
+  }
+
+  .logo-text {
+    font-family:'Bebas Neue', cursive;
+    font-size:26px;
+    letter-spacing:2px;
+    color:var(--gold);
+    line-height:1;
+  }
+
+  .logo-sub {
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:3px;
+    text-transform:uppercase;
+  }
+
+  .header-right {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  #user-badge {
+    display:none;
+    align-items:center;
+    gap:8px;
+    background: var(--card2);
+    border:1px solid var(--border);
+    border-radius:30px;
+    padding:8px 16px;
+    font-size:14px;
+    font-weight:500;
+  }
+
+  #user-badge .avatar {
+    width:28px; height:28px;
+    background: linear-gradient(135deg, var(--green-light), var(--gold));
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--dark);
+  }
+
+  /* ---- NAV TABS ---- */
+  .nav-tabs {
+    display:flex;
+    gap:4px;
+    padding:0 24px;
+    background: rgba(10,15,26,0.6);
+    border-bottom: 1px solid var(--border);
+    overflow-x:auto;
+    scrollbar-width:none;
+    position:sticky;
+    top:85px;
+    z-index:9;
+    backdrop-filter:blur(12px);
+  }
+
+  .nav-tabs::-webkit-scrollbar { display:none; }
+
+  .tab-btn {
+    padding:14px 20px;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:'Outfit',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:all 0.2s;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+  }
+
+  .tab-btn:hover { color:var(--text); }
+  .tab-btn.active {
+    color:var(--gold);
+    border-bottom-color:var(--gold);
+  }
+
+  /* ---- MAIN CONTENT ---- */
+  main {
+    position:relative;
+    z-index:1;
+    max-width:960px;
+    margin:0 auto;
+    padding:32px 20px 80px;
+  }
+
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* ---- SECTION TITLES ---- */
+  .section-title {
+    font-family:'Bebas Neue', cursive;
+    font-size:36px;
+    letter-spacing:3px;
+    color:var(--gold);
+    margin-bottom:6px;
+  }
+
+  .section-sub {
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:28px;
+  }
+
+  /* ---- LOGIN PAGE ---- */
+  #page-login {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:70vh;
+    text-align:center;
+  }
+
+  .login-trophy {
+    font-size:80px;
+    margin-bottom:16px;
+    filter:drop-shadow(0 0 30px rgba(245,200,66,0.4));
+    animation:
