@@ -807,7 +807,24 @@
     <div class="section-sub" id="pronos-sub">Entrez votre score prédit pour chaque match</div>
 
     <div class="info-box">
-      ℹ️ <span><b>Système de points :</b> Score exact = <b>5 pts</b> · Bon gagnant/nul = <b>2 pts</b> · Mauvais = <b>0 pt</b>. <b>Coefficients :</b> Huitièmes ×2 · Quarts ×3 · Demis ×4 · Finale ×5 — remontée possible jusqu'au bout !</span>
+      ℹ️ <span>
+        <b>Système de points</b><br>
+        &bull; Score exact = <b>5 pts</b><br>
+        &bull; Bon gagnant/nul = <b>2 pts</b><br>
+        &bull; Mauvais = <b>0 pt</b><br>
+        <br>
+        <b>Coefficients</b><br>
+        &bull; Huitièmes = points ×2<br>
+        &bull; Quarts = points ×3<br>
+        &bull; Demis = points ×4<br>
+        &bull; Finale = points ×5<br>
+        <br>
+        <b>Exemples</b><br>
+        &bull; Score exact en huitième → 5 pts × 2 = <b>10 pts</b><br>
+        &bull; Bon gagnant en demi-finale → 2 pts × 4 = <b>8 pts</b><br>
+        <br>
+        <i>Remontée possible jusqu'au bout !</i>
+      </span>
     </div>
 
     <div id="pronos-container"></div>
@@ -820,7 +837,7 @@
   <!-- PAGE CLASSEMENT -->
   <div class="page" id="page-classement">
     <div class="section-title">CLASSEMENT</div>
-    <div class="section-sub">Mis à jour en temps réel selon les résultats</div>
+    <div class="section-sub">Classement mis à jour régulièrement selon les résultats officiels</div>
 
     <div id="classement-container">
       <div class="empty-state">
@@ -1115,40 +1132,19 @@ function getDeadlineLabel(match) {
 
 const JSONBIN_API_KEY = '$2a$10$apjrLGY4JE5/xJrMaYlVH.PGTIaVf/msXACvAq0/9S4ZSca8JjwIi';
 const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b';
-let BIN_ID = localStorage.getItem('prono2026_binid') || null;
+let BIN_ID = '69af624043b1c97be9c6e441';
 
 // Données initiales vides
 const EMPTY_DATA = { players: [], pronos: {}, results: {} };
 
 async function dbLoad() {
-  showSyncStatus('⏳ Chargement...', 'loading');
   try {
-    if (!BIN_ID) {
-      const res = await fetch(JSONBIN_BASE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': JSONBIN_API_KEY,
-          'X-Bin-Name': 'prono2026',
-          'X-Bin-Private': 'false'
-        },
-        body: JSON.stringify(EMPTY_DATA)
-      });
-      const json = await res.json();
-      BIN_ID = json.metadata.id;
-      localStorage.setItem('prono2026_binid', BIN_ID);
-      showSyncStatus('✅ Base créée', 'ok');
-      return EMPTY_DATA;
-    } else {
-      const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}/latest`, {
-        headers: { 'X-Master-Key': JSONBIN_API_KEY }
-      });
-      const json = await res.json();
-      showSyncStatus('✅ Synchronisé', 'ok');
-      return json.record || EMPTY_DATA;
-    }
+    const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
+    const json = await res.json();
+    return json.record || EMPTY_DATA;
   } catch(e) {
-    showSyncStatus('❌ Erreur réseau', 'error');
     console.error(e);
     return EMPTY_DATA;
   }
@@ -1170,6 +1166,8 @@ async function dbSave() {
         results: state.results,
         unlockedPhases: state.unlockedPhases,
         knockoutTeams: state.knockoutTeams,
+        topScorerPronos: state.topScorerPronos,
+        topScorerResult: state.topScorerResult,
       })
     });
     showSyncStatus('✅ Sauvegardé', 'ok');
@@ -1196,6 +1194,8 @@ let state = {
   results: {},
   unlockedPhases: { group: true, r32: false, r16: false, qf: false, sf: false, final: false },
   knockoutTeams: {}, // {matchId: {home:{name,flag}, away:{name,flag}}}
+  topScorerPronos: {}, // {playerId: {team, player}}
+  topScorerResult: null, // {team, player} saisi par admin
 };
 
 // ==========================================
@@ -1380,7 +1380,7 @@ function renderPronos() {
     rounds[m.round].push(m);
   });
 
-  let html = '';
+  let html = renderTopScorerBonus();
   Object.entries(rounds).forEach(([roundName, matches]) => {
     const roundKey = matches[0].roundKey;
     const isUnlocked = state.unlockedPhases[roundKey];
@@ -1564,12 +1564,18 @@ function computePlayerScore(playerId) {
     const p = pronos[m.id];
     const r = state.results[m.id];
     if(!p || !r) return;
-
     const pts = calcPoints(p, r, m.roundKey);
     if(pts >= 5) perfect++;
     else if(pts >= 2) good++;
     total += pts;
   });
+
+  // Bonus meilleur buteur
+  const tsProno = state.topScorerPronos[playerId];
+  const tsResult = state.topScorerResult;
+  if(tsProno && tsResult && tsProno.player === tsResult.player && tsProno.team === tsResult.team) {
+    total += TOP_SCORER_POINTS;
+  }
 
   return { total, perfect, good };
 }
@@ -1586,7 +1592,7 @@ function renderClassement() {
       <div class="empty-state">
         <div class="icon">⏳</div>
         <div style="font-size:16px;margin-bottom:8px">Pas encore de résultats</div>
-        <div>Les points s'afficheront ici dès que les résultats seront saisis dans l'onglet Admin</div>
+        <div>Les points s'afficheront ici dès que les résultats seront saisis par le tout puissant Administrateur 😉</div>
       </div>`;
     return;
   }
@@ -1849,16 +1855,31 @@ function renderAdmin() {
 
   let html = '';
 
-  // ---- SECTION DÉBLOCAGE DES PHASES ----
-  html += `<div class="admin-section" style="margin-bottom:20px">
-    <div class="admin-title">🔓 Débloquer les phases éliminatoires</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Débloquez chaque phase quand les équipes qualifiées sont connues. Vous pourrez saisir les noms des équipes au moment du déblocage.</div>`;
+  // ---- HELPER ACCORDÉON ADMIN ----
+  function adminAccordion(id, icon, title, badge, defaultOpen, content) {
+    return `
+    <div style="margin-bottom:10px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
+      <div onclick="toggleAdminSection('${id}')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--card2);gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">${icon}</span>
+          <span style="font-family:'Bebas Neue',cursive;font-size:17px;letter-spacing:1.5px">${title}</span>
+          ${badge ? `<span style="font-size:12px;color:var(--muted)">${badge}</span>` : ''}
+        </div>
+        <span id="aarrow-${id}" style="color:var(--muted);font-size:16px;transition:transform 0.2s">${defaultOpen ? '▲' : '▼'}</span>
+      </div>
+      <div id="${id}" style="display:${defaultOpen ? 'block' : 'none'};background:var(--card);padding:16px 18px">
+        ${content}
+      </div>
+    </div>`;
+  }
 
+  // ---- 1. DÉBLOCAGE DES PHASES ----
+  let unlockContent = `<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Débloquez chaque phase quand les équipes qualifiées sont connues.</div>`;
   ['r32','r16','qf','sf','final'].forEach(key => {
     const isUnlocked = state.unlockedPhases[key];
     const label = PHASE_LABELS[key];
     const coeff = ROUND_LABELS[key];
-    html += `<div style="background:var(--dark3);border-radius:12px;padding:14px 18px;margin-bottom:10px;border:1px solid ${isUnlocked ? 'rgba(37,163,85,0.4)' : 'rgba(255,255,255,0.06)'}">
+    unlockContent += `<div style="background:var(--dark3);border-radius:12px;padding:14px 18px;margin-bottom:10px;border:1px solid ${isUnlocked ? 'rgba(37,163,85,0.4)' : 'rgba(255,255,255,0.06)'}">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div>
           <div style="font-weight:600;font-size:14px">${getRoundIcon(key)} ${label} <span class="chip active" style="margin-left:6px">${coeff}</span></div>
@@ -1874,24 +1895,29 @@ function renderAdmin() {
       ${isUnlocked ? renderTeamInputs(key) : ''}
     </div>`;
   });
+  const unlockedCount = ['r32','r16','qf','sf','final'].filter(k => state.unlockedPhases[k]).length;
+  html += adminAccordion('admin-unlock', '🔓', 'Phases éliminatoires', `${unlockedCount}/5 débloquées`, false, unlockContent);
 
-  html += `</div>`;
-
-  // ---- SECTION RÉSULTATS PAR PHASE ----
+  // ---- 2. SAISIE DES RÉSULTATS (un accordéon par groupe/phase) ----
+  let resultsHtml = '';
   Object.entries(rounds).forEach(([roundName, matches]) => {
     const roundKey = matches[0].roundKey;
     const isUnlocked = state.unlockedPhases[roundKey];
-    if(!isUnlocked && roundKey !== 'group') return; // cacher phases verrouillées
+    if(!isUnlocked && roundKey !== 'group') return;
 
-    html += `<div class="admin-section">`;
-    html += `<div class="admin-title">${getRoundIcon(roundKey)} ${roundName} — Saisie des résultats</div>`;
+    const savedCount = matches.filter(m => state.results[m.id] !== undefined).length;
+    const total = matches.length;
+    const allDone = savedCount === total;
+    const badge = allDone ? `✅ ${savedCount}/${total}` : `${savedCount}/${total} saisis`;
+    const subId = 'admin-res-' + roundKey + '-' + roundName.replace(/\s/g,'_');
 
+    let matchRows = '';
     matches.forEach(m => {
       const r = state.results[m.id] || {};
       const kt = state.knockoutTeams[m.id] || {};
       const homeTeam = kt.home || m.home;
       const awayTeam = kt.away || m.away;
-      html += `<div class="result-row" id="rr-${m.id}">
+      matchRows += `<div class="result-row" id="rr-${m.id}">
         <div class="team-label right">${homeTeam.flag} ${homeTeam.name}</div>
         <input type="number" class="score-input" style="width:48px" id="rh-${m.id}" min="0" max="20" placeholder="?" value="${r.home !== undefined ? r.home : ''}">
         <div class="sep-dash">—</div>
@@ -1901,10 +1927,67 @@ function renderAdmin() {
       </div>`;
     });
 
-    html += '</div>';
+    resultsHtml += `
+    <div style="margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)">
+      <div onclick="toggleAdminSection('${subId}')" style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;background:var(--dark3);gap:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span>${getRoundIcon(roundKey)}</span>
+          <span style="font-weight:600;font-size:13px">${roundName}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:${allDone ? 'var(--green-light)' : 'var(--muted)'}">${badge}</span>
+          <span id="aarrow-${subId}" style="color:var(--muted);font-size:13px">▼</span>
+        </div>
+      </div>
+      <div id="${subId}" style="display:none;padding:10px 14px;background:var(--card)">
+        ${matchRows}
+      </div>
+    </div>`;
   });
 
+  const totalSaved = Object.keys(state.results).length;
+  html += adminAccordion('admin-results', '⚽', 'Saisie des résultats', `${totalSaved} résultats enregistrés`, true, resultsHtml);
+
+  // ---- 3. BONUS MEILLEUR BUTEUR ----
+  const tsResult = state.topScorerResult;
+  const tsTeamOpts = Object.keys(SQUAD_PLAYERS).sort((a,b)=>a.localeCompare(b,'fr'))
+    .map(t => `<option value="${t}" ${tsResult && tsResult.team===t?'selected':''}>${t}</option>`).join('');
+  const tsPlayerOpts = tsResult && SQUAD_PLAYERS[tsResult.team]
+    ? SQUAD_PLAYERS[tsResult.team].map(p=>`<option value="${p}" ${tsResult.player===p?'selected':''}>${p}</option>`).join('')
+    : '';
+  const tsCount = Object.keys(state.topScorerPronos).length;
+
+  const bonusContent = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${tsCount} participant(s) ont saisi ce prono. Saisissez le buteur officiel en fin de tournoi pour attribuer les ${TOP_SCORER_POINTS} points.</div>
+    ${tsResult ? `<div style="background:rgba(37,163,85,0.1);border:1px solid var(--green-light);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--green-light)">✅ Résultat saisi : <strong>${tsResult.player}</strong> (${tsResult.team})</div>` : ''}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:140px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Équipe</label>
+        <select id="admin-ts-team" onchange="onAdminTsTeamChange()" style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+          <option value="">— Choisir une équipe —</option>${tsTeamOpts}
+        </select>
+      </div>
+      <div style="flex:1;min-width:160px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Joueur</label>
+        <select id="admin-ts-player" style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+          <option value="">— Choisir un joueur —</option>${tsPlayerOpts}
+        </select>
+      </div>
+      <button class="btn btn-gold" onclick="saveAdminTopScorer()" style="height:38px;padding:0 16px">Valider →</button>
+    </div>`;
+
+  html += adminAccordion('admin-bonus', '🥇', 'Bonus — Meilleur buteur', tsResult ? `✅ ${tsResult.player}` : `${tsCount} pronos saisis`, false, bonusContent);
+
   document.getElementById('admin-container').innerHTML = html;
+}
+
+function toggleAdminSection(id) {
+  const panel = document.getElementById(id);
+  const arrow = document.getElementById('aarrow-' + id);
+  if(!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
 }
 
 // Liste des pays participants extraite dynamiquement des groupes
@@ -1978,6 +2061,24 @@ function saveKnockoutTeams(matchId) {
   }
 }
 
+function onAdminTsTeamChange() {
+  const team = document.getElementById('admin-ts-team').value;
+  const sel = document.getElementById('admin-ts-player');
+  if(!sel) return;
+  const players = SQUAD_PLAYERS[team] || [];
+  sel.innerHTML = '<option value="">— Choisir un joueur —</option>' + players.map(p=>`<option value="${p}">${p}</option>`).join('');
+}
+
+function saveAdminTopScorer() {
+  const team = document.getElementById('admin-ts-team')?.value;
+  const player = document.getElementById('admin-ts-player')?.value;
+  if(!team || !player) { showToast('Choisissez une équipe et un joueur', 'error'); return; }
+  state.topScorerResult = { team, player };
+  dbSave().then(() => {
+    showToast(`🥇 Meilleur buteur enregistré : ${player} (${team})`, 'success');
+    renderAdmin();
+  });
+}
 function unlockPhase(key) {
   state.unlockedPhases[key] = true;
   dbSave().then(() => {
@@ -2012,9 +2113,150 @@ function saveResult(matchId) {
 }
 
 // ==========================================
-// UTILS
+// PRONO BONUS — MEILLEUR BUTEUR
 // ==========================================
 
+const TOP_SCORER_DEADLINE = '2026-06-10'; // Ferme le 10 juin à 23h59
+const TOP_SCORER_POINTS = 50;
+
+// Joueurs clés par équipe (attaquants & milieux offensifs)
+const SQUAD_PLAYERS = {
+  'Mexique':        ['Hirving Lozano','Raúl Jiménez','Henry Martín','Roberto Alvarado','Santiago Giménez','Alexis Vega'],
+  'Afrique du Sud': ['Percy Tau','Lyle Foster','Evidence Makgopa','Themba Zwane','Bongokuhle Hlongwane'],
+  'Corée du Sud':   ['Son Heung-min','Hwang Hee-chan','Cho Gue-sung','Lee Jae-sung','Oh Hyeon-gyu'],
+  'Canada':         ['Alphonso Davies','Jonathan David','Cyle Larin','Tajon Buchanan','Ike Ugbo','Junior Hoilett'],
+  'Suisse':         ['Breel Embolo','Xherdan Shaqiri','Granit Xhaka','Remo Freuler','Dan Ndoye','Zeki Amdouni'],
+  'Qatar':          ['Akram Afif','Almoez Ali','Hassan Al-Haydos','Ismail Mohamad','Karim Boudiaf'],
+  'Brésil':         ['Vinicius Jr','Rodrygo','Raphinha','Gabriel Martinelli','Endrick','Richarlison','Neymar'],
+  'Maroc':          ['Hakim Ziyech','Youssef En-Nesyri','Sofiane Boufal','Achraf Hakimi','Azzedine Ounahi'],
+  'Haïti':          ['Frantzdy Pierrot','Derrick Etienne Jr','Duckens Nazon','Steeven Saba'],
+  'Écosse':         ['Andy Robertson','Scott McTominay','Che Adams','Ryan Christie','Kenny McLean','Billy Gilmour'],
+  'USA':            ['Christian Pulisic','Timothy Weah','Folarin Balogun','Ricardo Pepi','Gio Reyna','Josh Sargent'],
+  'Paraguay':       ['Miguel Almirón','Ángel Romero','Antonio Sanabria','Iván Zaracho','Julio Enciso'],
+  'Australie':      ['Mathew Leckie','Mitchell Duke','Martin Boyle','Jackson Irvine','Brandon Borrello'],
+  'Allemagne':      ['Florian Wirtz','Kai Havertz','Leroy Sané','Thomas Müller','Jamal Musiala','Serge Gnabry'],
+  'Curaçao':        ['Cuco Martina','Leandro Bacuna','Elson Hooi','Jarchinio Antonia'],
+  "Côte d'Ivoire":  ['Sébastien Haller','Nicolas Pépé','Franck Kessié','Jean-Philippe Krasso','Simon Adingra'],
+  'Équateur':       ['Enner Valencia','Moisés Caicedo','Gonzalo Plata','Michael Estrada','Jeremy Sarmiento'],
+  'Pays-Bas':       ['Memphis Depay','Cody Gakpo','Xavi Simons','Wout Weghorst','Donyell Malen','Tijjani Reijnders'],
+  'Japon':          ['Takumi Minamino','Daichi Kamada','Ritsu Doan','Kaoru Mitoma','Ayase Ueda','Junya Ito'],
+  'Tunisie':        ['Youssef Msakni','Seifeddine Jaziri','Hannibal Mejbri','Wahbi Khazri','Nizar Issaoui'],
+  'Belgique':       ['Romelu Lukaku','Kevin De Bruyne','Dries Mertens','Lois Openda','Jeremy Doku','Leandro Trossard'],
+  'Égypte':         ['Mohamed Salah','Omar Marmoush','Mostafa Mohamed','Trezeguet','Ahmed Sayed Zizo'],
+  'Iran':           ['Mehdi Taremi','Sardar Azmoun','Ali Gholizadeh','Alireza Jahanbakhsh','Karim Ansarifard'],
+  'Nouvelle-Zélande':['Chris Wood','Liberato Cacace','Liam Millar','Matthew Garbett','Clayton Lewis'],
+  'Espagne':        ['Álvaro Morata','Ferran Torres','Pedri','Gavi','Lamine Yamal','Nico Williams','Mikel Oyarzabal'],
+  'Cabo Verde':     ['Garry Rodrigues','Ryan Mendes','Julio Tavares','Willy Semedo','Stopira'],
+  'Arabie Saoudite':['Salem Al-Dawsari','Firas Al-Buraikan','Mohammed Al-Owais','Sami Al-Najei','Abdullah Al-Hamdan'],
+  'Uruguay':        ['Darwin Núñez','Luis Suárez','Federico Valverde','Rodrigo Bentancur','Facundo Torres','Maxi Gómez'],
+  'France':         ['Kylian Mbappé','Antoine Griezmann','Olivier Giroud','Marcus Thuram','Ousmane Dembélé','Randal Kolo Muani'],
+  'Sénégal':        ['Sadio Mané','Ismaïla Sarr','Boulaye Dia','Nicolas Jackson','Habib Diallo','Iliman Ndiaye'],
+  'Norvège':        ['Erling Haaland','Martin Ødegaard','Alexander Sørloth','Jørgen Strand Larsen','Mohammed Elyounoussi'],
+  'Argentine':      ['Lionel Messi','Lautaro Martínez','Julián Álvarez','Ángel Di María','Paulo Dybala','Alejandro Garnacho'],
+  'Algérie':        ['Riyad Mahrez','Islam Slimani','Youcef Atal','Baghdad Bounedjah','Andy Delort'],
+  'Autriche':       ['Marko Arnautovic','David Alaba','Marcel Sabitzer','Christoph Baumgartner','Michael Gregoritsch'],
+  'Jordanie':       ['Musa Al-Taamari','Hamza Al-Dardour','Ahmad Hayel','Yazan Al-Naimat'],
+  'Portugal':       ['Cristiano Ronaldo','Bruno Fernandes','Bernardo Silva','Rafael Leão','Gonçalo Ramos','Diogo Jota'],
+  'Colombie':       ['Luis Díaz','James Rodríguez','Falcao','Cucho Hernández','Rafael Santos Borré','Jhon Durán'],
+  'Ouzbékistan':    ['Eldor Shomurodov','Jasur Yaxshiboyev','Locongolo Omonov','Otabek Shukurov'],
+  'Angleterre':     ['Harry Kane','Bukayo Saka','Phil Foden','Marcus Rashford','Jude Bellingham','Ollie Watkins'],
+  'Croatie':        ['Luka Modrić','Ivan Perišić','Andrej Kramarić','Bruno Petković','Marko Livaja'],
+  'Ghana':          ['Jordan Ayew','André Ayew','Inaki Williams','Antoine Semenyo','Mohammed Kudus'],
+  'Panama':         ['Rolando Blackburn','Gabriel Torres','Cecilio Waterman','Aníbal Godoy','Adalberto Carrasquilla'],
+};
+
+function isTopScorerClosed() {
+  try {
+    const deadline = getDeadlineParis(TOP_SCORER_DEADLINE);
+    return new Date() > deadline;
+  } catch(e) { return false; }
+}
+
+function renderTopScorerBonus() {
+  const uid = state.currentUser.id;
+  const existing = state.topScorerPronos[uid];
+  const closed = isTopScorerClosed();
+  const result = state.topScorerResult;
+
+  // Points gagnés ?
+  let pointsHtml = '';
+  if(result && existing) {
+    const won = existing.player === result.player && existing.team === result.team;
+    pointsHtml = won
+      ? `<div style="background:rgba(37,163,85,0.15);border:1px solid var(--green-light);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--green-light);font-weight:700;margin-top:10px">⭐ Bravo ! +${TOP_SCORER_POINTS} points — ${result.player} (${result.team})</div>`
+      : `<div style="background:rgba(232,64,64,0.1);border:1px solid var(--red);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:10px">❌ Raté — Le vrai buteur était ${result.player} (${result.team})</div>`;
+  }
+
+  // Sélecteurs équipe + joueur
+  const teamOpts = Object.keys(SQUAD_PLAYERS).sort((a,b)=>a.localeCompare(b,'fr'))
+    .map(t => `<option value="${t}" ${existing && existing.team===t?'selected':''}>${t}</option>`).join('');
+
+  const selectedTeam = existing ? existing.team : '';
+  const playerOpts = selectedTeam && SQUAD_PLAYERS[selectedTeam]
+    ? SQUAD_PLAYERS[selectedTeam].map(p => `<option value="${p}" ${existing && existing.player===p?'selected':''}>${p}</option>`).join('')
+    : '<option value="">— Choisir une équipe d\'abord —</option>';
+
+  const disabledAttr = (closed || result) ? 'disabled' : '';
+  const statusMsg = result
+    ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">🔒 Résultat officiel saisi — pronos fermés</div>`
+    : closed
+      ? `<div style="font-size:12px;color:var(--red);margin-top:6px">🔒 Délai dépassé — pronos fermés le 10 juin</div>`
+      : `<div style="font-size:12px;color:var(--muted);margin-top:6px">⏰ Ferme le 10 juin à 23h59</div>`;
+
+  return `
+  <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:2px solid var(--gold)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(245,200,66,0.05))">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🥇</span>
+        <div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1.5px">BONUS — MEILLEUR BUTEUR</div>
+          <div style="font-size:12px;color:var(--gold);font-weight:600">+${TOP_SCORER_POINTS} points si bonne réponse</div>
+        </div>
+      </div>
+      ${existing && !result ? `<span style="font-size:12px;color:var(--green-light)">✅ Saisi</span>` : ''}
+    </div>
+    <div style="padding:16px 18px;background:var(--card)">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Équipe</label>
+          <select id="ts-team" onchange="onTopScorerTeamChange()" ${disabledAttr} style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+            <option value="">— Choisir une équipe —</option>${teamOpts}
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Joueur</label>
+          <select id="ts-player" ${disabledAttr} style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+            <option value="">— Choisir un joueur —</option>${playerOpts}
+          </select>
+        </div>
+        ${!closed && !result ? `<button class="btn btn-gold" onclick="saveTopScorer()" style="height:38px;padding:0 16px;white-space:nowrap">Valider →</button>` : ''}
+      </div>
+      ${statusMsg}
+      ${pointsHtml}
+    </div>
+  </div>`;
+}
+
+function onTopScorerTeamChange() {
+  const team = document.getElementById('ts-team').value;
+  const sel = document.getElementById('ts-player');
+  if(!sel) return;
+  const players = SQUAD_PLAYERS[team] || [];
+  sel.innerHTML = '<option value="">— Choisir un joueur —</option>' + players.map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+function saveTopScorer() {
+  const team = document.getElementById('ts-team')?.value;
+  const player = document.getElementById('ts-player')?.value;
+  if(!team || !player) { showToast('Choisissez une équipe et un joueur', 'error'); return; }
+  if(isTopScorerClosed()) { showToast('🔒 Délai dépassé', 'error'); return; }
+  const uid = state.currentUser.id;
+  state.topScorerPronos[uid] = { team, player };
+  dbSave().then(() => {
+    showToast(`⭐ Prono bonus enregistré — ${player} (${team})`, 'success');
+    renderPronos();
+  });
+}
 function getRoundIcon(key) {
   const icons = { group:'🟢', r32:'⚡', r16:'💥', qf:'🔥', sf:'🌟', final:'🏆' };
   return icons[key] || '⚽';
@@ -2063,6 +2305,8 @@ async function init() {
   state.results = data.results || {};
   state.unlockedPhases = data.unlockedPhases || { group: true, r32: false, r16: false, qf: false, sf: false, final: false };
   state.knockoutTeams = data.knockoutTeams || {};
+  state.topScorerPronos = data.topScorerPronos || {};
+  state.topScorerResult = data.topScorerResult || null;
   refreshPlayerSelect();
 }
 
