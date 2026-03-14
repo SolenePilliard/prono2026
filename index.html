@@ -1578,7 +1578,7 @@ function computePlayerScore(playerId) {
   // Bonus meilleur buteur
   const tsProno = state.topScorerPronos[playerId];
   const tsResult = state.topScorerResult;
-  if(tsProno && tsResult && tsProno.player === tsResult.player && tsProno.team === tsResult.team) {
+  if(tsProno && tsResult && tsProno.player === tsResult.player) {
     total += TOP_SCORER_POINTS;
   }
 
@@ -1957,25 +1957,30 @@ function renderAdmin() {
   const tsResult = state.topScorerResult;
   const tsTeamOpts = Object.keys(SQUAD_PLAYERS).sort((a,b)=>a.localeCompare(b,'fr'))
     .map(t => `<option value="${t}" ${tsResult && tsResult.team===t?'selected':''}>${t}</option>`).join('');
-  const tsPlayerOpts = tsResult && SQUAD_PLAYERS[tsResult.team]
-    ? SQUAD_PLAYERS[tsResult.team].map(p=>`<option value="${p}" ${tsResult.player===p?'selected':''}>${p}</option>`).join('')
-    : '';
   const tsCount = Object.keys(state.topScorerPronos).length;
+
+  // Liste unique : stars en premier, puis tous les autres joueurs triés
+  const allPlayers = [
+    ...TOP_STARS.map(s => ({player: s.player, team: s.team, star: true})),
+    ...Object.entries(SQUAD_PLAYERS).flatMap(([team, players]) =>
+      players
+        .filter(p => !TOP_STARS.some(s => s.player === p))
+        .map(p => ({player: p, team, star: false}))
+    ).sort((a,b) => a.player.localeCompare(b.player, 'fr'))
+  ];
+
+  const allPlayerOpts = allPlayers.map(p =>
+    `<option value="${p.player}|${p.team}" ${tsResult && tsResult.player===p.player?'selected':''}>${p.star?'⭐ ':''}${p.player} (${p.team})</option>`
+  ).join('');
 
   const bonusContent = `
     <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${tsCount} participant(s) ont saisi ce prono. Saisissez le buteur officiel en fin de tournoi pour attribuer les ${TOP_SCORER_POINTS} points.</div>
     ${tsResult ? `<div style="background:rgba(37,163,85,0.1);border:1px solid var(--green-light);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--green-light)">✅ Résultat saisi : <strong>${tsResult.player}</strong> (${tsResult.team})</div>` : ''}
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-      <div style="flex:1;min-width:140px">
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Équipe</label>
-        <select id="admin-ts-team" onchange="onAdminTsTeamChange()" style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-          <option value="">— Choisir une équipe —</option>${tsTeamOpts}
-        </select>
-      </div>
-      <div style="flex:1;min-width:160px">
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Joueur</label>
+      <div style="flex:1;min-width:200px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Joueur (⭐ = liste stars)</label>
         <select id="admin-ts-player" style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-          <option value="">— Choisir un joueur —</option>${tsPlayerOpts}
+          <option value="">— Choisir un joueur —</option>${allPlayerOpts}
         </select>
       </div>
       <button class="btn btn-gold" onclick="saveAdminTopScorer()" style="height:38px;padding:0 16px">Valider →</button>
@@ -2066,18 +2071,10 @@ function saveKnockoutTeams(matchId) {
   }
 }
 
-function onAdminTsTeamChange() {
-  const team = document.getElementById('admin-ts-team').value;
-  const sel = document.getElementById('admin-ts-player');
-  if(!sel) return;
-  const players = SQUAD_PLAYERS[team] || [];
-  sel.innerHTML = '<option value="">— Choisir un joueur —</option>' + players.map(p=>`<option value="${p}">${p}</option>`).join('');
-}
-
 function saveAdminTopScorer() {
-  const team = document.getElementById('admin-ts-team')?.value;
-  const player = document.getElementById('admin-ts-player')?.value;
-  if(!team || !player) { showToast('Choisissez une équipe et un joueur', 'error'); return; }
+  const val = document.getElementById('admin-ts-player')?.value;
+  if(!val) { showToast('Choisissez un joueur', 'error'); return; }
+  const [player, team] = val.split('|');
   state.topScorerResult = { team, player };
   dbSave().then(() => {
     showToast(`🥇 Meilleur buteur enregistré : ${player} (${team})`, 'success');
