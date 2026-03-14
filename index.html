@@ -2177,36 +2177,86 @@ function isTopScorerClosed() {
   } catch(e) { return false; }
 }
 
+const TOP_STARS = [
+  {player:'Lionel Messi',       team:'Argentine'},
+  {player:'Cristiano Ronaldo',  team:'Portugal'},
+  {player:'Kylian Mbappé',      team:'France'},
+  {player:'Harry Kane',         team:'Angleterre'},
+  {player:'Erling Haaland',     team:'Norvège'},
+  {player:'Lamine Yamal',       team:'Espagne'},
+  {player:'Vinícius Júnior',    team:'Brésil'},
+  {player:'Raphinha',           team:'Brésil'},
+  {player:'Kevin De Bruyne',    team:'Belgique'},
+  {player:'Thibaut Courtois',   team:'Belgique'},
+];
+
 function renderTopScorerBonus() {
   const uid = state.currentUser.id;
   const existing = state.topScorerPronos[uid];
   const closed = isTopScorerClosed();
   const result = state.topScorerResult;
+  const disabledAttr = (closed || result) ? 'disabled' : '';
 
   // Points gagnés ?
   let pointsHtml = '';
   if(result && existing) {
-    const won = existing.player === result.player && existing.team === result.team;
+    const won = existing.player === result.player;
     pointsHtml = won
       ? `<div style="background:rgba(37,163,85,0.15);border:1px solid var(--green-light);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--green-light);font-weight:700;margin-top:10px">⭐ Bravo ! +${TOP_SCORER_POINTS} points — ${result.player} (${result.team})</div>`
       : `<div style="background:rgba(232,64,64,0.1);border:1px solid var(--red);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:10px">❌ Raté — Le vrai buteur était ${result.player} (${result.team})</div>`;
   }
 
-  // Sélecteurs équipe + joueur
-  const teamOpts = Object.keys(SQUAD_PLAYERS).sort((a,b)=>a.localeCompare(b,'fr'))
-    .map(t => `<option value="${t}" ${existing && existing.team===t?'selected':''}>${t}</option>`).join('');
+  const statusMsg = result
+    ? `<div style="font-size:12px;color:var(--muted);margin-top:10px">🔒 Résultat officiel saisi — pronos fermés</div>`
+    : closed
+      ? `<div style="font-size:12px;color:var(--red);margin-top:10px">🔒 Délai dépassé — pronos fermés le 10 juin</div>`
+      : `<div style="font-size:12px;color:var(--muted);margin-top:10px">⏰ Ferme le 10 juin à 23h59</div>`;
 
-  const selectedTeam = existing ? existing.team : '';
+  // Détecter le mode actif (stars ou expert)
+  const isStar = existing && TOP_STARS.some(s => s.player === existing.player);
+  const activeMode = existing ? (isStar ? 'stars' : 'expert') : 'stars';
+
+  // --- Onglet STARS ---
+  const starsGrid = TOP_STARS.map(s => {
+    const sel = existing && existing.player === s.player;
+    return `<div onclick="${!disabledAttr ? `selectStar('${s.player}','${s.team}')` : ''}"
+      style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:${disabledAttr ? 'default' : 'pointer'};
+      border:2px solid ${sel ? 'var(--gold)' : 'rgba(255,255,255,0.08)'};
+      background:${sel ? 'rgba(245,200,66,0.1)' : 'var(--dark3)'};
+      transition:all 0.15s">
+      <span style="font-size:20px">${flagImg(Object.values(GROUPS).flatMap(g=>g.teams).find(t=>t.name===s.team)?.flag||'ko', 20)}</span>
+      <div>
+        <div style="font-size:13px;font-weight:${sel?'700':'500'};color:${sel?'var(--gold)':'var(--text)'}">${s.player}</div>
+        <div style="font-size:11px;color:var(--muted)">${s.team}</div>
+      </div>
+      ${sel ? `<span style="margin-left:auto;color:var(--gold);font-size:16px">✓</span>` : ''}
+    </div>`;
+  }).join('');
+
+  // --- Onglet EXPERT ---
+  const teamOpts = Object.keys(SQUAD_PLAYERS).sort((a,b)=>a.localeCompare(b,'fr'))
+    .map(t => `<option value="${t}" ${existing && !isStar && existing.team===t?'selected':''}>${t}</option>`).join('');
+  const selectedTeam = existing && !isStar ? existing.team : '';
   const playerOpts = selectedTeam && SQUAD_PLAYERS[selectedTeam]
     ? SQUAD_PLAYERS[selectedTeam].map(p => `<option value="${p}" ${existing && existing.player===p?'selected':''}>${p}</option>`).join('')
-    : '<option value="">— Choisir une équipe d\'abord —</option>';
+    : '';
 
-  const disabledAttr = (closed || result) ? 'disabled' : '';
-  const statusMsg = result
-    ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">🔒 Résultat officiel saisi — pronos fermés</div>`
-    : closed
-      ? `<div style="font-size:12px;color:var(--red);margin-top:6px">🔒 Délai dépassé — pronos fermés le 10 juin</div>`
-      : `<div style="font-size:12px;color:var(--muted);margin-top:6px">⏰ Ferme le 10 juin à 23h59</div>`;
+  const expertForm = `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:4px">
+      <div style="flex:1;min-width:140px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Équipe</label>
+        <select id="ts-team" onchange="onTopScorerTeamChange()" ${disabledAttr} style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+          <option value="">— Choisir une équipe —</option>${teamOpts}
+        </select>
+      </div>
+      <div style="flex:1;min-width:160px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Joueur</label>
+        <select id="ts-player" ${disabledAttr} style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+          <option value="">— Choisir un joueur —</option>${playerOpts}
+        </select>
+      </div>
+      ${!closed && !result ? `<button class="btn btn-gold" onclick="saveTopScorer()" style="height:38px;padding:0 16px;white-space:nowrap">Valider →</button>` : ''}
+    </div>`;
 
   return `
   <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:2px solid var(--gold)">
@@ -2218,28 +2268,58 @@ function renderTopScorerBonus() {
           <div style="font-size:12px;color:var(--gold);font-weight:600">+${TOP_SCORER_POINTS} points si bonne réponse</div>
         </div>
       </div>
-      ${existing && !result ? `<span style="font-size:12px;color:var(--green-light)">✅ Saisi</span>` : ''}
+      ${existing && !result ? `<span style="font-size:12px;color:var(--green-light)">✅ ${existing.player}</span>` : ''}
     </div>
-    <div style="padding:16px 18px;background:var(--card)">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-        <div style="flex:1;min-width:140px">
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Équipe</label>
-          <select id="ts-team" onchange="onTopScorerTeamChange()" ${disabledAttr} style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-            <option value="">— Choisir une équipe —</option>${teamOpts}
-          </select>
+    <div style="background:var(--card)">
+
+      ${!result && !closed ? `
+      <!-- Onglets -->
+      <div style="display:flex;border-bottom:1px solid var(--border)">
+        <div id="tab-stars" onclick="switchTsTab('stars')" style="flex:1;text-align:center;padding:12px;cursor:pointer;font-size:13px;font-weight:600;
+          border-bottom:2px solid ${activeMode==='stars'?'var(--gold)':'transparent'};
+          color:${activeMode==='stars'?'var(--gold)':'var(--muted)'}">
+          ⭐ Les stars (débutant)
         </div>
-        <div style="flex:1;min-width:160px">
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Joueur</label>
-          <select id="ts-player" ${disabledAttr} style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-            <option value="">— Choisir un joueur —</option>${playerOpts}
-          </select>
+        <div id="tab-expert" onclick="switchTsTab('expert')" style="flex:1;text-align:center;padding:12px;cursor:pointer;font-size:13px;font-weight:600;
+          border-bottom:2px solid ${activeMode==='expert'?'var(--gold)':'transparent'};
+          color:${activeMode==='expert'?'var(--gold)':'var(--muted)'}">
+          🔍 Tous les joueurs (expert)
         </div>
-        ${!closed && !result ? `<button class="btn btn-gold" onclick="saveTopScorer()" style="height:38px;padding:0 16px;white-space:nowrap">Valider →</button>` : ''}
+      </div>` : ''}
+
+      <!-- Contenu onglet stars -->
+      <div id="ts-panel-stars" style="padding:14px 16px;display:${activeMode==='stars'||result||closed?'block':'none'}">
+        ${result || closed ? `<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Votre choix : <strong style="color:var(--text)">${existing ? existing.player : '—'}</strong></div>` : ''}
+        ${!result && !closed ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${starsGrid}</div>` : ''}
       </div>
-      ${statusMsg}
-      ${pointsHtml}
+
+      <!-- Contenu onglet expert -->
+      <div id="ts-panel-expert" style="padding:14px 16px;display:${activeMode==='expert'&&!result&&!closed?'block':'none'}">
+        ${expertForm}
+      </div>
+
+      <div style="padding:0 16px 14px">${statusMsg}${pointsHtml}</div>
     </div>
   </div>`;
+}
+
+function switchTsTab(tab) {
+  document.getElementById('ts-panel-stars').style.display = tab === 'stars' ? 'block' : 'none';
+  document.getElementById('ts-panel-expert').style.display = tab === 'expert' ? 'block' : 'none';
+  document.getElementById('tab-stars').style.borderBottomColor = tab === 'stars' ? 'var(--gold)' : 'transparent';
+  document.getElementById('tab-expert').style.borderBottomColor = tab === 'expert' ? 'var(--gold)' : 'transparent';
+  document.getElementById('tab-stars').style.color = tab === 'stars' ? 'var(--gold)' : 'var(--muted)';
+  document.getElementById('tab-expert').style.color = tab === 'expert' ? 'var(--gold)' : 'var(--muted)';
+}
+
+function selectStar(player, team) {
+  if(isTopScorerClosed() || state.topScorerResult) return;
+  const uid = state.currentUser.id;
+  state.topScorerPronos[uid] = { player, team };
+  dbSave().then(() => {
+    showToast(`⭐ Prono bonus enregistré — ${player}`, 'success');
+    renderPronos();
+  });
 }
 
 function onTopScorerTeamChange() {
