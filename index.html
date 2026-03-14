@@ -815,26 +815,38 @@
     <div class="section-title">MES PRONOS</div>
     <div class="section-sub" id="pronos-sub">Entrez votre score prédit pour chaque match</div>
 
-    <div class="info-box">
-      ℹ️ <span>
-        <b>Système de points</b><br>
-        &bull; Score exact = <b>5 pts</b><br>
-        &bull; Bon gagnant/nul = <b>2 pts</b><br>
-        &bull; Mauvais = <b>0 pt</b><br>
-        <br>
-        <b>Coefficients</b><br>
-        &bull; Seizièmes = points ×1<br>
-        &bull; Huitièmes = points ×2<br>
-        &bull; Quarts = points ×3<br>
-        &bull; Demis & 3e place = points ×4<br>
-        &bull; Finale = points ×5<br>
-        <br>
-        <b>Exemples</b><br>
-        &bull; Score exact en huitième → 5 pts × 2 = <b>10 pts</b><br>
-        &bull; Bon gagnant en demi-finale → 2 pts × 4 = <b>8 pts</b><br>
-        <br>
-        <i>Remontée possible jusqu'au bout !</i>
-      </span>
+    <div class="info-box" style="padding:14px 16px">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div style="flex:1;min-width:130px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:6px;color:var(--text)">Système de points</div>
+          <div style="font-size:12px;line-height:1.7">
+            Score exact = <b>5 pts</b><br>
+            Bon gagnant/nul = <b>2 pts</b><br>
+            Mauvais = <b>0 pt</b>
+          </div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,0.08);align-self:stretch"></div>
+        <div style="flex:1;min-width:150px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:6px;color:var(--text)">Coefficients</div>
+          <div style="font-size:12px;line-height:1.7">
+            Seizièmes ×1 · Huitièmes ×2<br>
+            Quarts ×3 · Demis & 3e ×4<br>
+            Finale ×5
+          </div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,0.08);align-self:stretch"></div>
+        <div style="flex:1;min-width:170px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:6px;color:var(--text)">Exemples</div>
+          <div style="font-size:12px;line-height:1.7">
+            Exact en huitième → 5×2 = <b>10 pts</b><br>
+            Gagnant en demi → 2×4 = <b>8 pts</b>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px">
+        <i>Remontée possible jusqu'au bout !</i><br><br>
+        <b>NB :</b> en cas d'égalité, le joueur ayant le plus de scores exacts l'emporte.
+      </div>
     </div>
 
     <div id="pronos-container"></div>
