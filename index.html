@@ -814,9 +814,6 @@
   <div class="page" id="page-pronos">
     <div class="section-title">MES PRONOS</div>
     <div class="section-sub" id="pronos-sub">Entrez votre score prédit pour chaque match</div>
-    <div style="text-align:center;margin-bottom:12px">
-      <button class="btn btn-outline" onclick="confirmRandomFill()" style="font-size:13px;padding:8px 18px">🎲 Remplir la phase de groupes au hasard</button>
-    </div>
 
     <div class="info-box">
       ℹ️ <span>
@@ -1407,16 +1404,107 @@ function renderPronos() {
     rounds[m.round].push(m);
   });
 
+  // Séparer groupes et phases KO
+  const groupRounds = Object.entries(rounds).filter(([,ms]) => ms[0].roundKey === 'group');
+  const koRounds = Object.entries(rounds).filter(([,ms]) => ms[0].roundKey !== 'group');
+
   let html = renderTopScorerBonus() + renderHotTeamBonus();
-  Object.entries(rounds).forEach(([roundName, matches]) => {
+
+  // ---- MEGA ACCORDÉON PHASE DE GROUPES ----
+  const groupMatches = groupRounds.flatMap(([,ms]) => ms);
+  const groupTotal = groupMatches.length;
+  const groupDone = groupMatches.filter(m => myPronos[m.id] && myPronos[m.id].home !== '' && myPronos[m.id].away !== '').length;
+  const groupAllDone = groupDone === groupTotal;
+  const groupChip = groupAllDone
+    ? `<span style="font-size:12px;color:var(--green-light)">✅ ${groupDone}/${groupTotal}</span>`
+    : `<span style="font-size:12px;color:${groupDone>0?'var(--gold)':'var(--muted)'}">${groupDone}/${groupTotal} saisis</span>`;
+
+  html += `
+  <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
+    <div onclick="togglePronoSection('prono-groups')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--card2);gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">🟢</span>
+        <span style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1.5px">PHASE DE GROUPES</span>
+        ${groupChip}
+      </div>
+      <span id="parrow-prono-groups" style="color:var(--muted);font-size:16px">▼</span>
+    </div>
+    <div id="prono-groups" style="display:none;background:rgba(37,163,85,0.03)">
+
+      <!-- Bouton random + sous-groupes -->
+      <div style="padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:12px;color:var(--muted)">12 groupes · 72 matchs</div>
+        <button class="btn btn-outline" onclick="confirmRandomFill()" style="font-size:12px;padding:6px 14px">🎲 Remplir au hasard les groupes non saisis</button>
+      </div>`;
+
+  // Sous-accordéons par groupe
+  groupRounds.forEach(([roundName, matches]) => {
+    const gid = 'prono-g-' + roundName.replace(/\s/g,'_');
+    const total = matches.length;
+    const done = matches.filter(m => myPronos[m.id] && myPronos[m.id].home !== '' && myPronos[m.id].away !== '').length;
+    const allDone = done === total;
+    const chip = allDone
+      ? `<span style="font-size:11px;color:var(--green-light)">✅ ${done}/${total}</span>`
+      : `<span style="font-size:11px;color:${done>0?'var(--gold)':'var(--muted)'}">${done}/${total}</span>`;
+
+    html += `
+      <div style="border-bottom:1px solid rgba(255,255,255,0.04)">
+        <div onclick="togglePronoSection('${gid}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;font-weight:600">${roundName}</span>
+            ${chip}
+          </div>
+          <span id="parrow-${gid}" style="color:var(--muted);font-size:13px">▼</span>
+        </div>
+        <div id="${gid}" style="display:none;background:var(--card)">
+          <div class="matches-grid" style="padding:12px">`;
+
+    matches.forEach(m => {
+      const p = myPronos[m.id];
+      const hasProno = p !== undefined && p.home !== '' && p.away !== '';
+      const isClosed = isMatchClosed(m);
+      const cardClass = isClosed ? 'match-card closed-match' : (hasProno ? 'match-card has-prono' : 'match-card');
+      const inputDisabled = isClosed ? 'disabled' : '';
+      const statusHtml = isClosed
+        ? `<div style="font-size:11px;color:var(--red);font-weight:600">🔒 Pronos fermés</div>`
+        : hasProno
+          ? `<div class="prono-saved">✅ Enregistré</div>`
+          : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`;
+
+      html += `
+        <div class="${cardClass}" id="mc-${m.id}">
+          <div class="team-side">
+            <div class="team-flag">${flagImg(m.home.flag, 36)}</div>
+            <div class="team-name">${m.home.name}</div>
+          </div>
+          <div class="match-center">
+            <div class="match-date">📅 ${m.date}</div>
+            <div class="score-input-group">
+              <input type="text" inputmode="numeric" class="score-input" id="ph-${m.id}" placeholder="?" maxlength="1" value="${p ? p.home : ''}" oninput="filterScore(this)" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+              <span class="vs-sep">-</span>
+              <input type="text" inputmode="numeric" class="score-input" id="pa-${m.id}" placeholder="?" maxlength="1" value="${p ? p.away : ''}" oninput="filterScore(this)" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+            </div>
+            ${statusHtml}
+          </div>
+          <div class="team-side">
+            <div class="team-flag">${flagImg(m.away.flag, 36)}</div>
+            <div class="team-name">${m.away.name}</div>
+          </div>
+        </div>`;
+    });
+
+    html += `</div></div></div></div>`;
+  });
+
+  html += `</div></div>`;
+
+  // ---- PHASES KO ----
+  koRounds.forEach(([roundName, matches]) => {
     const roundKey = matches[0].roundKey;
     const isUnlocked = state.unlockedPhases[roundKey];
     const uid2 = 'prono-' + roundKey + '-' + roundName.replace(/\s/g,'_');
-
-    // Comptage pour le résumé dans l'en-tête
     const total = matches.length;
     const done = matches.filter(m => myPronos[m.id] && myPronos[m.id].home !== '' && myPronos[m.id].away !== '').length;
-    const closed = matches.every(m => isMatchClosed(m));
     const allDone = done === total;
 
     const statusChip = !isUnlocked
@@ -1424,9 +1512,6 @@ function renderPronos() {
       : allDone
         ? `<span style="font-size:12px;color:var(--green-light)">✅ ${done}/${total}</span>`
         : `<span style="font-size:12px;color:${done>0?'var(--gold)':'var(--muted)'}">${done}/${total} saisis</span>`;
-
-    // Tout replié par défaut — l'en-tête montre le compteur
-    const defaultOpen = false;
 
     html += `
     <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
@@ -1436,9 +1521,9 @@ function renderPronos() {
           <span style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1.5px">${roundName}</span>
           ${statusChip}
         </div>
-        <span id="parrow-${uid2}" style="color:var(--muted);font-size:16px;transition:transform 0.2s">${defaultOpen ? '▲' : '▼'}</span>
+        <span id="parrow-${uid2}" style="color:var(--muted);font-size:16px">▼</span>
       </div>
-      <div id="${uid2}" style="display:${defaultOpen ? 'block' : 'none'};background:var(--card)">`;
+      <div id="${uid2}" style="display:none;background:var(--card)">`;
 
     if(!isUnlocked) {
       html += `<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px">
@@ -1449,19 +1534,17 @@ function renderPronos() {
       matches.forEach(m => {
         const p = myPronos[m.id];
         const hasProno = p !== undefined && p.home !== '' && p.away !== '';
-        const isKO = m.roundKey !== 'group';
         const isClosed = isMatchClosed(m);
         const kt = state.knockoutTeams[m.id] || {};
         const homeTeam = kt.home || m.home;
         const awayTeam = kt.away || m.away;
-
         const cardClass = isClosed ? 'match-card closed-match' : (hasProno ? 'match-card has-prono' : 'match-card');
         const inputDisabled = isClosed ? 'disabled' : '';
         const statusHtml = isClosed
           ? `<div style="font-size:11px;color:var(--red);font-weight:600">🔒 Pronos fermés</div>`
-          : (hasProno
-              ? `<div class="prono-saved">✅ Enregistré</div>`
-              : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`);
+          : hasProno
+            ? `<div class="prono-saved">✅ Enregistré</div>`
+            : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`;
 
         html += `
         <div class="${cardClass}" id="mc-${m.id}">
@@ -1477,7 +1560,7 @@ function renderPronos() {
               <input type="text" inputmode="numeric" class="score-input" id="pa-${m.id}" placeholder="?" maxlength="1" value="${p ? p.away : ''}" oninput="filterScore(this)" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
             </div>
             ${statusHtml}
-            ${isKO ? `<div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>` : ''}
+            <div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>
           </div>
           <div class="team-side">
             <div class="team-flag">${flagImg(awayTeam.flag, 36)}</div>
@@ -1487,7 +1570,6 @@ function renderPronos() {
       });
       html += `</div>`;
     }
-
     html += `</div></div>`;
   });
 
