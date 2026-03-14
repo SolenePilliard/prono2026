@@ -1407,7 +1407,7 @@ function renderPronos() {
     const allDone = done === total;
 
     const statusChip = !isUnlocked
-      ? `<span style="font-size:12px;color:var(--muted)">🔒 Verrouillée</span>`
+      ? `<span style="font-size:12px;color:var(--muted)">🔒 Verrouillé</span>`
       : allDone
         ? `<span style="font-size:12px;color:var(--green-light)">✅ ${done}/${total}</span>`
         : `<span style="font-size:12px;color:${done>0?'var(--gold)':'var(--muted)'}">${done}/${total} saisis</span>`;
