@@ -814,9 +814,10 @@
         &bull; Mauvais = <b>0 pt</b><br>
         <br>
         <b>Coefficients</b><br>
+        &bull; Seizièmes = points ×1<br>
         &bull; Huitièmes = points ×2<br>
         &bull; Quarts = points ×3<br>
-        &bull; Demis = points ×4<br>
+        &bull; Demis & 3e place = points ×4<br>
         &bull; Finale = points ×5<br>
         <br>
         <b>Exemples</b><br>
@@ -1037,31 +1038,31 @@ function generateGroupMatches() {
 
 const KNOCKOUT_MATCHES = [
   // 32es de finale (16 matchs)
-  {id:'r32_1',  round:'32es de finale', roundKey:'r32', home:{name:'1A',flag:'r32'}, away:{name:'3E/F/G',flag:'r32'}, date:'29 Mar', deadline:'2026-03-29'},
-  {id:'r32_2',  round:'32es de finale', roundKey:'r32', home:{name:'1C',flag:'r32'}, away:{name:'3A/B/D',flag:'r32'}, date:'29 Mar', deadline:'2026-03-29'},
-  {id:'r32_3',  round:'32es de finale', roundKey:'r32', home:{name:'1B',flag:'r32'}, away:{name:'3G/H/I',flag:'r32'}, date:'30 Mar', deadline:'2026-03-30'},
-  {id:'r32_4',  round:'32es de finale', roundKey:'r32', home:{name:'1E',flag:'r32'}, away:{name:'3J/K/L',flag:'r32'}, date:'30 Mar', deadline:'2026-03-30'},
-  {id:'r32_5',  round:'32es de finale', roundKey:'r32', home:{name:'1D',flag:'r32'}, away:{name:'2F',flag:'r32'},     date:'31 Mar', deadline:'2026-03-31'},
-  {id:'r32_6',  round:'32es de finale', roundKey:'r32', home:{name:'1F',flag:'r32'}, away:{name:'2H',flag:'r32'},     date:'31 Mar', deadline:'2026-03-31'},
-  {id:'r32_7',  round:'32es de finale', roundKey:'r32', home:{name:'1H',flag:'r32'}, away:{name:'2J',flag:'r32'},     date:'1 Apr',  deadline:'2026-04-01'},
-  {id:'r32_8',  round:'32es de finale', roundKey:'r32', home:{name:'1J',flag:'r32'}, away:{name:'2L',flag:'r32'},     date:'1 Apr',  deadline:'2026-04-01'},
-  {id:'r32_9',  round:'32es de finale', roundKey:'r32', home:{name:'1G',flag:'r32'}, away:{name:'2I',flag:'r32'},     date:'2 Apr',  deadline:'2026-04-02'},
-  {id:'r32_10', round:'32es de finale', roundKey:'r32', home:{name:'1I',flag:'r32'}, away:{name:'2K',flag:'r32'},     date:'2 Apr',  deadline:'2026-04-02'},
-  {id:'r32_11', round:'32es de finale', roundKey:'r32', home:{name:'1K',flag:'r32'}, away:{name:'2A',flag:'r32'},     date:'3 Apr',  deadline:'2026-04-03'},
-  {id:'r32_12', round:'32es de finale', roundKey:'r32', home:{name:'1L',flag:'r32'}, away:{name:'2B',flag:'r32'},     date:'3 Apr',  deadline:'2026-04-03'},
-  {id:'r32_13', round:'32es de finale', roundKey:'r32', home:{name:'2C',flag:'r32'}, away:{name:'3B/D/E',flag:'r32'}, date:'4 Apr',  deadline:'2026-04-04'},
-  {id:'r32_14', round:'32es de finale', roundKey:'r32', home:{name:'2D',flag:'r32'}, away:{name:'3C/F/H',flag:'r32'}, date:'4 Apr',  deadline:'2026-04-04'},
-  {id:'r32_15', round:'32es de finale', roundKey:'r32', home:{name:'2E',flag:'r32'}, away:{name:'2G',flag:'r32'},     date:'5 Apr',  deadline:'2026-04-05'},
-  {id:'r32_16', round:'32es de finale', roundKey:'r32', home:{name:'2M',flag:'r32'}, away:{name:'3A/I/J/K/L',flag:'r32'}, date:'5 Apr', deadline:'2026-04-05'},
+  {id:'r16_1',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1A',flag:'ko'}, away:{name:'3E/F/G',flag:'ko'}, date:'29 Mar', deadline:'2026-03-29'},
+  {id:'r16_2',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1C',flag:'ko'}, away:{name:'3A/B/D',flag:'ko'}, date:'29 Mar', deadline:'2026-03-29'},
+  {id:'r16_3',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1B',flag:'ko'}, away:{name:'3G/H/I',flag:'ko'}, date:'30 Mar', deadline:'2026-03-30'},
+  {id:'r16_4',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1E',flag:'ko'}, away:{name:'3J/K/L',flag:'ko'}, date:'30 Mar', deadline:'2026-03-30'},
+  {id:'r16_5',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1D',flag:'ko'}, away:{name:'2F',flag:'ko'},     date:'31 Mar', deadline:'2026-03-31'},
+  {id:'r16_6',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1F',flag:'ko'}, away:{name:'2H',flag:'ko'},     date:'31 Mar', deadline:'2026-03-31'},
+  {id:'r16_7',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1H',flag:'ko'}, away:{name:'2J',flag:'ko'},     date:'1 Apr',  deadline:'2026-04-01'},
+  {id:'r16_8',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1J',flag:'ko'}, away:{name:'2L',flag:'ko'},     date:'1 Apr',  deadline:'2026-04-01'},
+  {id:'r16_9',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1G',flag:'ko'}, away:{name:'2I',flag:'ko'},     date:'2 Apr',  deadline:'2026-04-02'},
+  {id:'r16_10', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1I',flag:'ko'}, away:{name:'2K',flag:'ko'},     date:'2 Apr',  deadline:'2026-04-02'},
+  {id:'r16_11', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1K',flag:'ko'}, away:{name:'2A',flag:'ko'},     date:'3 Apr',  deadline:'2026-04-03'},
+  {id:'r16_12', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1L',flag:'ko'}, away:{name:'2B',flag:'ko'},     date:'3 Apr',  deadline:'2026-04-03'},
+  {id:'r16_13', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2C',flag:'ko'}, away:{name:'3B/D/E',flag:'ko'}, date:'4 Apr',  deadline:'2026-04-04'},
+  {id:'r16_14', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2D',flag:'ko'}, away:{name:'3C/F/H',flag:'ko'}, date:'4 Apr',  deadline:'2026-04-04'},
+  {id:'r16_15', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2E',flag:'ko'}, away:{name:'2G',flag:'ko'},     date:'5 Apr',  deadline:'2026-04-05'},
+  {id:'r16_16', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2M',flag:'ko'}, away:{name:'3A/I/J/K/L',flag:'ko'}, date:'5 Apr', deadline:'2026-04-05'},
   // Huitièmes de finale (8 matchs)
-  {id:'r16_1', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M1',flag:'ko'}, away:{name:'M2',flag:'ko'},   date:'9 Apr',  deadline:'2026-04-09'},
-  {id:'r16_2', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M3',flag:'ko'}, away:{name:'M4',flag:'ko'},   date:'9 Apr',  deadline:'2026-04-09'},
-  {id:'r16_3', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M5',flag:'ko'}, away:{name:'M6',flag:'ko'},   date:'10 Apr', deadline:'2026-04-10'},
-  {id:'r16_4', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M7',flag:'ko'}, away:{name:'M8',flag:'ko'},   date:'10 Apr', deadline:'2026-04-10'},
-  {id:'r16_5', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M9',flag:'ko'}, away:{name:'M10',flag:'ko'},  date:'11 Apr', deadline:'2026-04-11'},
-  {id:'r16_6', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M11',flag:'ko'}, away:{name:'M12',flag:'ko'}, date:'11 Apr', deadline:'2026-04-11'},
-  {id:'r16_7', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M13',flag:'ko'}, away:{name:'M14',flag:'ko'}, date:'12 Apr', deadline:'2026-04-12'},
-  {id:'r16_8', round:'Huitièmes de finale', roundKey:'r16', home:{name:'M15',flag:'ko'}, away:{name:'M16',flag:'ko'}, date:'12 Apr', deadline:'2026-04-12'},
+  {id:'r8_1', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M1',flag:'ko'}, away:{name:'M2',flag:'ko'},   date:'9 Apr',  deadline:'2026-04-09'},
+  {id:'r8_2', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M3',flag:'ko'}, away:{name:'M4',flag:'ko'},   date:'9 Apr',  deadline:'2026-04-09'},
+  {id:'r8_3', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M5',flag:'ko'}, away:{name:'M6',flag:'ko'},   date:'10 Apr', deadline:'2026-04-10'},
+  {id:'r8_4', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M7',flag:'ko'}, away:{name:'M8',flag:'ko'},   date:'10 Apr', deadline:'2026-04-10'},
+  {id:'r8_5', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M9',flag:'ko'}, away:{name:'M10',flag:'ko'},  date:'11 Apr', deadline:'2026-04-11'},
+  {id:'r8_6', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M11',flag:'ko'}, away:{name:'M12',flag:'ko'}, date:'11 Apr', deadline:'2026-04-11'},
+  {id:'r8_7', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M13',flag:'ko'}, away:{name:'M14',flag:'ko'}, date:'12 Apr', deadline:'2026-04-12'},
+  {id:'r8_8', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M15',flag:'ko'}, away:{name:'M16',flag:'ko'}, date:'12 Apr', deadline:'2026-04-12'},
   // Quarts de finale
   {id:'qf_1', round:'Quarts de finale', roundKey:'qf', home:{name:'QF1',flag:'ko'}, away:{name:'QF2',flag:'ko'}, date:'16 Apr', deadline:'2026-04-16'},
   {id:'qf_2', round:'Quarts de finale', roundKey:'qf', home:{name:'QF3',flag:'ko'}, away:{name:'QF4',flag:'ko'}, date:'16 Apr', deadline:'2026-04-16'},
@@ -1070,7 +1071,8 @@ const KNOCKOUT_MATCHES = [
   // Demi-finales
   {id:'sf_1', round:'Demi-finales', roundKey:'sf', home:{name:'SF1',flag:'ko'}, away:{name:'SF2',flag:'ko'}, date:'21 Apr', deadline:'2026-04-21'},
   {id:'sf_2', round:'Demi-finales', roundKey:'sf', home:{name:'SF3',flag:'ko'}, away:{name:'SF4',flag:'ko'}, date:'22 Apr', deadline:'2026-04-22'},
-  // Finale
+  // Finale + 3e place
+  {id:'third', round:'Match 3e place', roundKey:'third', home:{name:'SF1P',flag:'ko'}, away:{name:'SF2P',flag:'ko'}, date:'25 Apr', deadline:'2026-04-25'},
   {id:'final', round:'Finale', roundKey:'final', home:{name:'SF1W',flag:'ko'}, away:{name:'SF2W',flag:'ko'}, date:'26 Apr', deadline:'2026-04-26'},
 ];
 
@@ -1188,7 +1190,7 @@ let state = {
   players: [],
   pronos: {},
   results: {},
-  unlockedPhases: { group: true, r32: false, r16: false, qf: false, sf: false, final: false },
+  unlockedPhases: { group: true, r16: false, r8: false, qf: false, sf: false, third: false, final: false },
   knockoutTeams: {}, // {matchId: {home:{name,flag}, away:{name,flag}}}
   topScorerPronos: {}, // {playerId: {team, player}}
   topScorerResult: null, // {team, player} saisi par admin
@@ -1522,19 +1524,21 @@ function saveAllPronos() {
 // Coefficients par phase
 const ROUND_COEFFICIENTS = {
   group: 1,
-  r32:   1,
-  r16:   2,
+  r16:   1,
+  r8:    2,
   qf:    3,
   sf:    4,
+  third: 4,
   final: 5,
 };
 
 const ROUND_LABELS = {
   group: '×1',
-  r32:   '×1',
-  r16:   '×2',
+  r16:   '×1',
+  r8:    '×2',
   qf:    '×3',
   sf:    '×4',
+  third: '×4',
   final: '×5',
 };
 
@@ -1842,7 +1846,7 @@ function deletePlayer(playerId) {
 
 
 function renderAdmin() {
-  const PHASE_LABELS = { r32:'32es de finale', r16:'Huitièmes de finale', qf:'Quarts de finale', sf:'Demi-finales', final:'Finale' };
+  const PHASE_LABELS = { r16:'Seizièmes de finale', r8:'Huitièmes de finale', qf:'Quarts de finale', sf:'Demi-finales', third:'Match 3e place', final:'Finale' };
   const rounds = {};
   ALL_MATCHES.forEach(m => {
     if(!rounds[m.round]) rounds[m.round] = [];
@@ -1871,7 +1875,7 @@ function renderAdmin() {
 
   // ---- 1. DÉBLOCAGE DES PHASES ----
   let unlockContent = `<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Débloquez chaque phase quand les équipes qualifiées sont connues.</div>`;
-  ['r32','r16','qf','sf','final'].forEach(key => {
+  ['r16','r8','qf','sf','third','final'].forEach(key => {
     const isUnlocked = state.unlockedPhases[key];
     const label = PHASE_LABELS[key];
     const coeff = ROUND_LABELS[key];
@@ -1891,8 +1895,8 @@ function renderAdmin() {
       ${isUnlocked ? renderTeamInputs(key) : ''}
     </div>`;
   });
-  const unlockedCount = ['r32','r16','qf','sf','final'].filter(k => state.unlockedPhases[k]).length;
-  html += adminAccordion('admin-unlock', '🔓', 'Phases éliminatoires', `${unlockedCount}/5 débloquées`, false, unlockContent);
+  const unlockedCount = ['r16','r8','qf','sf','third','final'].filter(k => state.unlockedPhases[k]).length;
+  html += adminAccordion('admin-unlock', '🔓', 'Phases éliminatoires', `${unlockedCount}/6 débloquées`, false, unlockContent);
 
   // ---- 2. SAISIE DES RÉSULTATS (un accordéon par groupe/phase) ----
   let resultsHtml = '';
@@ -2003,7 +2007,7 @@ function renderTeamInputs(phaseKey) {
     const kt = state.knockoutTeams[m.id] || {};
     const hVal = kt.home ? `${kt.home.name}|${kt.home.flag}` : '';
     const aVal = kt.away ? `${kt.away.name}|${kt.away.flag}` : '';
-    const label = m.id.replace('r32_','32e ').replace('r16_','H').replace('qf_','Q').replace('sf_','D').replace('final','Finale');
+    const label = m.id.replace('r16_','S').replace('r8_','H').replace('qf_','Q').replace('sf_','D').replace('final','Finale');
     html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
       <span style="font-size:11px;color:var(--muted);min-width:60px">${label}</span>
       <select id="kt-h-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
@@ -2255,12 +2259,12 @@ function saveTopScorer() {
 }
 function flagImg(code, size=28) {
   if(!code || code === 'xx') return `<span style="font-size:${size}px;opacity:0.4">🏳️</span>`;
-  if(['r32','ko'].includes(code)) return `<span style="font-size:${Math.round(size*0.8)}px">⚽</span>`;
+  if(['ko'].includes(code)) return `<span style="font-size:${Math.round(size*0.8)}px">⚽</span>`;
   return `<img src="https://flagcdn.com/${size}x${Math.round(size*0.75)}/${code}.png" style="border-radius:2px;vertical-align:middle;object-fit:cover" onerror="this.replaceWith(document.createTextNode('🏳️'))">`;
 }
 
 function getRoundIcon(key) {
-  const icons = { group:'🟢', r32:'⚡', r16:'💥', qf:'🔥', sf:'🌟', final:'🏆' };
+  const icons = { group:'🟢', r16:'⚡', r8:'💥', qf:'🔥', sf:'🌟', third:'🥉', final:'🏆' };
   return icons[key] || '⚽';
 }
 
@@ -2305,7 +2309,7 @@ async function init() {
   state.players = data.players || [];
   state.pronos = data.pronos || {};
   state.results = data.results || {};
-  state.unlockedPhases = data.unlockedPhases || { group: true, r32: false, r16: false, qf: false, sf: false, final: false };
+  state.unlockedPhases = data.unlockedPhases || { group: true, r16: false, r8: false, qf: false, sf: false, third: false, final: false };
   state.knockoutTeams = data.knockoutTeams || {};
   state.topScorerPronos = data.topScorerPronos || {};
   state.topScorerResult = data.topScorerResult || null;
