@@ -1443,9 +1443,9 @@ function renderPronos() {
           <div class="match-center">
             <div class="match-date">📅 ${m.date}</div>
             <div class="score-input-group">
-              <input type="number" class="score-input" id="ph-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.home : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+              <input type="number" class="score-input" id="ph-${m.id}" min="0" max="9" placeholder="?" value="${p ? p.home : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
               <span class="vs-sep">-</span>
-              <input type="number" class="score-input" id="pa-${m.id}" min="0" max="20" placeholder="?" value="${p ? p.away : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+              <input type="number" class="score-input" id="pa-${m.id}" min="0" max="9" placeholder="?" value="${p ? p.away : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
             </div>
             ${statusHtml}
             ${isKO ? `<div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>` : ''}
@@ -1490,8 +1490,12 @@ function autoSaveProno(matchId) {
   }
   const uid = state.currentUser.id;
   if(!state.pronos[uid]) state.pronos[uid] = {};
-  const h = document.getElementById('ph-'+matchId).value;
-  const a = document.getElementById('pa-'+matchId).value;
+  let h = document.getElementById('ph-'+matchId).value;
+  let a = document.getElementById('pa-'+matchId).value;
+
+  // Validation 0-9
+  if(h !== '') { h = Math.min(9, Math.max(0, parseInt(h))); document.getElementById('ph-'+matchId).value = h; }
+  if(a !== '') { a = Math.min(9, Math.max(0, parseInt(a))); document.getElementById('pa-'+matchId).value = a; }
   if(h !== '' && a !== '') {
     state.pronos[uid][matchId] = { home: parseInt(h), away: parseInt(a) };
     const card = document.getElementById('mc-'+matchId);
@@ -1919,9 +1923,9 @@ function renderAdmin() {
       const awayTeam = kt.away || m.away;
       matchRows += `<div class="result-row" id="rr-${m.id}">
         <div class="team-label right">${flagImg(homeTeam.flag, 20)} ${homeTeam.name}</div>
-        <input type="number" class="score-input" style="width:48px" id="rh-${m.id}" min="0" max="20" placeholder="?" value="${r.home !== undefined ? r.home : ''}">
+        <input type="number" class="score-input" style="width:48px" id="rh-${m.id}" min="0" max="9" placeholder="?" value="${r.home !== undefined ? r.home : ''}">
         <div class="sep-dash">—</div>
-        <input type="number" class="score-input" style="width:48px" id="ra-${m.id}" min="0" max="20" placeholder="?" value="${r.away !== undefined ? r.away : ''}">
+        <input type="number" class="score-input" style="width:48px" id="ra-${m.id}" min="0" max="9" placeholder="?" value="${r.away !== undefined ? r.away : ''}">
         <div class="team-label">${awayTeam.name} ${flagImg(awayTeam.flag, 20)}</div>
         <button class="btn btn-green btn-sm" onclick="saveResult('${m.id}')">✓</button>
       </div>`;
