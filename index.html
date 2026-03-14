@@ -1396,8 +1396,8 @@ function renderPronos() {
         ? `<span style="font-size:12px;color:var(--green-light)">✅ ${done}/${total}</span>`
         : `<span style="font-size:12px;color:${done>0?'var(--gold)':'var(--muted)'}">${done}/${total} saisis</span>`;
 
-    // Groupes de poule ouverts par défaut, phases KO repliées
-    const defaultOpen = (roundKey === 'group' || (isUnlocked && done < total));
+    // Tout replié par défaut — l'en-tête montre le compteur
+    const defaultOpen = false;
 
     html += `
     <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
