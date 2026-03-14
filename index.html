@@ -2432,7 +2432,13 @@ function renderTopScorerBonus() {
     <div id="ts-bonus" style="display:none;background:var(--card)">
 
       ${!result && !closed ? `
-      <div style="display:flex;border-bottom:1px solid var(--border)">
+      <div style="padding:14px 18px 0;font-size:13px;color:var(--muted)">
+        <div style="font-style:italic;margin-bottom:10px;color:var(--text)">Quel joueur inscrira le plus de buts ?</div>
+        Si vous êtes novice en foot, choisissez le <strong>mode débutant</strong> qui vous propose une liste des meilleurs joueurs du tournoi pour vous aider. Si vous êtes incollable, choisissez le <strong>mode expert</strong>, sélectionnez d'abord l'équipe puis le joueur de votre choix.
+      </div>` : ''}
+
+      ${!result && !closed ? `
+      <div style="display:flex;border-bottom:1px solid var(--border);margin-top:12px">
         <div id="tab-stars" onclick="switchTsTab('stars')" style="flex:1;text-align:center;padding:12px;cursor:pointer;font-size:13px;font-weight:600;
           border-bottom:2px solid ${activeMode==='stars'?'var(--gold)':'transparent'};
           color:${activeMode==='stars'?'var(--gold)':'var(--muted)'}">
