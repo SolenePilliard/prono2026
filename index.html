@@ -995,6 +995,12 @@ const GROUPS = {
   ]},
 };
 
+// Liste des pays participants extraite dynamiquement des groupes
+const COUNTRIES = Object.values(GROUPS)
+  .flatMap(g => g.teams)
+  .filter((t,i,arr) => arr.findIndex(x => x.name === t.name) === i)
+  .sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+
 // Générer les matchs de poule avec deadlines (23:59 heure Paris la veille)
 function generateGroupMatches() {
   const matches = [];
@@ -2070,12 +2076,6 @@ function toggleAdminSection(id) {
   panel.style.display = isOpen ? 'none' : 'block';
   if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
 }
-
-// Liste des pays participants extraite dynamiquement des groupes
-const COUNTRIES = Object.values(GROUPS)
-  .flatMap(g => g.teams)
-  .filter((t,i,arr) => arr.findIndex(x => x.name === t.name) === i)
-  .sort((a,b) => a.name.localeCompare(b.name, 'fr'));
 
 function renderTeamInputs(phaseKey) {
   const phaseMatches = KNOCKOUT_MATCHES.filter(m => m.roundKey === phaseKey);
