@@ -1443,9 +1443,9 @@ function renderPronos() {
           <div class="match-center">
             <div class="match-date">📅 ${m.date}</div>
             <div class="score-input-group">
-              <input type="number" class="score-input" id="ph-${m.id}" min="0" max="9" placeholder="?" value="${p ? p.home : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+              <input type="text" inputmode="numeric" class="score-input" id="ph-${m.id}" placeholder="?" maxlength="1" value="${p ? p.home : ''}" oninput="filterScore(this)" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
               <span class="vs-sep">-</span>
-              <input type="number" class="score-input" id="pa-${m.id}" min="0" max="9" placeholder="?" value="${p ? p.away : ''}" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
+              <input type="text" inputmode="numeric" class="score-input" id="pa-${m.id}" placeholder="?" maxlength="1" value="${p ? p.away : ''}" oninput="filterScore(this)" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
             </div>
             ${statusHtml}
             ${isKO ? `<div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>` : ''}
@@ -1482,6 +1482,11 @@ function togglePronoSection(uid) {
   if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
 }
 
+function filterScore(input) {
+  // Garder uniquement un chiffre entre 0 et 9
+  input.value = input.value.replace(/[^0-9]/g, '').slice(0, 1);
+}
+
 function autoSaveProno(matchId) {
   const match = ALL_MATCHES.find(m => m.id === matchId);
   if(match && isMatchClosed(match)) {
@@ -1490,12 +1495,8 @@ function autoSaveProno(matchId) {
   }
   const uid = state.currentUser.id;
   if(!state.pronos[uid]) state.pronos[uid] = {};
-  let h = document.getElementById('ph-'+matchId).value;
-  let a = document.getElementById('pa-'+matchId).value;
-
-  // Validation 0-9
-  if(h !== '') { h = Math.min(9, Math.max(0, parseInt(h))); document.getElementById('ph-'+matchId).value = h; }
-  if(a !== '') { a = Math.min(9, Math.max(0, parseInt(a))); document.getElementById('pa-'+matchId).value = a; }
+  const h = document.getElementById('ph-'+matchId).value;
+  const a = document.getElementById('pa-'+matchId).value;
   if(h !== '' && a !== '') {
     state.pronos[uid][matchId] = { home: parseInt(h), away: parseInt(a) };
     const card = document.getElementById('mc-'+matchId);
@@ -1923,9 +1924,9 @@ function renderAdmin() {
       const awayTeam = kt.away || m.away;
       matchRows += `<div class="result-row" id="rr-${m.id}">
         <div class="team-label right">${flagImg(homeTeam.flag, 20)} ${homeTeam.name}</div>
-        <input type="number" class="score-input" style="width:48px" id="rh-${m.id}" min="0" max="9" placeholder="?" value="${r.home !== undefined ? r.home : ''}">
+        <input type="text" inputmode="numeric" class="score-input" style="width:48px" id="rh-${m.id}" placeholder="?" maxlength="1" value="${r.home !== undefined ? r.home : ''}" oninput="filterScore(this)">
         <div class="sep-dash">—</div>
-        <input type="number" class="score-input" style="width:48px" id="ra-${m.id}" min="0" max="9" placeholder="?" value="${r.away !== undefined ? r.away : ''}">
+        <input type="text" inputmode="numeric" class="score-input" style="width:48px" id="ra-${m.id}" placeholder="?" maxlength="1" value="${r.away !== undefined ? r.away : ''}" oninput="filterScore(this)">
         <div class="team-label">${awayTeam.name} ${flagImg(awayTeam.flag, 20)}</div>
         <button class="btn btn-green btn-sm" onclick="saveResult('${m.id}')">✓</button>
       </div>`;
