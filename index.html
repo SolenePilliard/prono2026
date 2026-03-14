@@ -814,6 +814,9 @@
   <div class="page" id="page-pronos">
     <div class="section-title">MES PRONOS</div>
     <div class="section-sub" id="pronos-sub">Entrez votre score prédit pour chaque match</div>
+    <div style="text-align:center;margin-bottom:12px">
+      <button class="btn btn-outline" onclick="confirmRandomFill()" style="font-size:13px;padding:8px 18px">🎲 Remplir la phase de groupes au hasard</button>
+    </div>
 
     <div class="info-box">
       ℹ️ <span>
@@ -1528,6 +1531,46 @@ function autoSaveProno(matchId) {
     const card = document.getElementById('mc-'+matchId);
     if(card) card.classList.add('has-prono');
   }
+}
+
+// Scores pondérés réalistes (les plus fréquents en CdM)
+const REALISTIC_SCORES = [
+  [1,0],[0,1],[1,1],[2,1],[1,2],[2,0],[0,2],
+  [1,0],[0,1],[1,1],[2,1],[1,2],[2,0],[0,2], // doublés pour augmenter fréquence
+  [0,0],[2,2],[3,1],[1,3],[3,0],[0,3],[3,2],[2,3],
+  [2,0],[0,2],[1,0],[0,1],[1,1], // encore plus de petits scores
+];
+
+function confirmRandomFill() {
+  if(!confirm('🎲 Remplir automatiquement tous les matchs de la phase de groupes non encore saisis ?\n\nVos pronos déjà remplis ne seront pas modifiés.')) return;
+  randomFillGroup();
+}
+
+function randomFillGroup() {
+  const uid = state.currentUser.id;
+  if(!state.pronos[uid]) state.pronos[uid] = {};
+  let filled = 0;
+
+  ALL_MATCHES.forEach(m => {
+    if(m.roundKey !== 'group') return;
+    if(isMatchClosed(m)) return;
+    const existing = state.pronos[uid][m.id];
+    if(existing && existing.home !== '' && existing.away !== '') return; // déjà saisi
+
+    const score = REALISTIC_SCORES[Math.floor(Math.random() * REALISTIC_SCORES.length)];
+    state.pronos[uid][m.id] = { home: score[0], away: score[1] };
+    filled++;
+  });
+
+  if(filled === 0) {
+    showToast('Tous les matchs de poule sont déjà remplis !', 'error');
+    return;
+  }
+
+  dbSave().then(() => {
+    showToast(`🎲 ${filled} pronostic(s) générés aléatoirement !`, 'success');
+    renderPronos();
+  });
 }
 
 function saveAllPronos() {
