@@ -881,9 +881,16 @@
       <div class="section-sub">Gestion des joueurs et saisie des résultats</div>
 
       <!-- Gestion joueurs -->
-      <div class="admin-section" style="margin-bottom:20px">
-        <div class="admin-title">👥 Joueurs inscrits</div>
-        <div id="players-admin-list"></div>
+      <div style="margin-bottom:20px;border-radius:14px;overflow:hidden;border:1px solid var(--border)" id="players-accordion">
+        <div onclick="toggleAdminSection('players-admin-list')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--card2)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:18px">👥</span>
+            <span style="font-family:'Bebas Neue',cursive;font-size:17px;letter-spacing:1.5px">Joueurs inscrits</span>
+            <span id="players-count-badge" style="font-size:12px;color:var(--muted)"></span>
+          </div>
+          <span id="aarrow-players-admin-list" style="color:var(--muted);font-size:16px">▼</span>
+        </div>
+        <div id="players-admin-list" style="display:none;background:var(--card);padding:16px 18px"></div>
       </div>
 
       <div class="info-box">
@@ -1762,6 +1769,9 @@ function checkAdminPwd() {
 
 function renderPlayersAdmin() {
   const container = document.getElementById('players-admin-list');
+  const badge = document.getElementById('players-count-badge');
+  if(badge) badge.textContent = `${state.players.length} inscrit(s)`;
+
   if(!state.players.length) {
     container.innerHTML = '<div style="color:var(--muted);font-size:14px">Aucun joueur inscrit.</div>';
     return;
@@ -1928,6 +1938,7 @@ function renderAdmin() {
         <div class="sep-dash">—</div>
         <input type="text" inputmode="numeric" class="score-input" style="width:48px" id="ra-${m.id}" placeholder="?" maxlength="1" value="${r.away !== undefined ? r.away : ''}" oninput="filterScore(this)">
         <div class="team-label">${awayTeam.name} ${flagImg(awayTeam.flag, 20)}</div>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap">📅 ${m.date}</span>
         <button class="btn btn-green btn-sm" onclick="saveResult('${m.id}')">✓</button>
       </div>`;
     });
