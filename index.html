@@ -562,14 +562,23 @@
 
   .result-row {
     display:grid;
-    grid-template-columns: 1fr 48px 10px 48px 1fr auto;
+    grid-template-columns: 1fr auto auto auto 1fr auto;
     align-items:center;
-    gap:10px;
+    gap:8px;
     padding:10px 0;
     border-bottom:1px solid rgba(255,255,255,0.04);
   }
 
   .result-row:last-child { border-bottom:none; }
+  .result-row-center { display:flex;flex-direction:column;align-items:center;gap:3px; }
+  .btn-save-result {
+    width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--green-light);color:#000;font-size:14px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:opacity 0.2s;
+  }
+  .btn-save-result:hover { opacity:0.8; }
+  .btn-save-result.saved { background:rgba(37,163,85,0.2);color:var(--green-light);border:1px solid var(--green-light); }
 
   .team-label {
     font-size:13px;
@@ -1934,12 +1943,16 @@ function renderAdmin() {
       const awayTeam = kt.away || m.away;
       matchRows += `<div class="result-row" id="rr-${m.id}">
         <div class="team-label right">${flagImg(homeTeam.flag, 20)} ${homeTeam.name}</div>
-        <input type="text" inputmode="numeric" class="score-input" style="width:48px" id="rh-${m.id}" placeholder="?" maxlength="1" value="${r.home !== undefined ? r.home : ''}" oninput="filterScore(this)">
-        <div class="sep-dash">—</div>
-        <input type="text" inputmode="numeric" class="score-input" style="width:48px" id="ra-${m.id}" placeholder="?" maxlength="1" value="${r.away !== undefined ? r.away : ''}" oninput="filterScore(this)">
+        <input type="text" inputmode="numeric" class="score-input" style="width:44px" id="rh-${m.id}" placeholder="?" maxlength="1" value="${r.home !== undefined ? r.home : ''}" oninput="filterScore(this)">
+        <div class="result-row-center">
+          <span style="color:var(--muted);font-size:12px">—</span>
+          <span style="font-size:10px;color:var(--muted)">📅 ${m.date}</span>
+        </div>
+        <input type="text" inputmode="numeric" class="score-input" style="width:44px" id="ra-${m.id}" placeholder="?" maxlength="1" value="${r.away !== undefined ? r.away : ''}" oninput="filterScore(this)">
         <div class="team-label">${awayTeam.name} ${flagImg(awayTeam.flag, 20)}</div>
-        <span style="font-size:11px;color:var(--muted);white-space:nowrap">📅 ${m.date}</span>
-        <button class="btn btn-green btn-sm" onclick="saveResult('${m.id}')">✓</button>
+        <button class="btn-save-result ${r.home !== undefined ? 'saved' : ''}" onclick="saveResult('${m.id}')" title="Valider">
+          ${r.home !== undefined ? '✓' : '→'}
+        </button>
       </div>`;
     });
 
@@ -2117,12 +2130,10 @@ function saveResult(matchId) {
   save('results', state.results);
   showToast('✅ Résultat enregistré !', 'success');
 
-  // Highlight row
+  const btn = document.querySelector(`#rr-${matchId} .btn-save-result`);
+  if(btn) { btn.classList.add('saved'); btn.textContent = '✓'; }
   const row = document.getElementById('rr-'+matchId);
-  if(row) {
-    row.style.background = 'rgba(37,163,85,0.08)';
-    setTimeout(() => row.style.background = '', 1500);
-  }
+  if(row) { row.style.background = 'rgba(37,163,85,0.08)'; setTimeout(() => row.style.background = '', 1500); }
 }
 
 // ==========================================
