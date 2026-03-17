@@ -754,7 +754,7 @@
 <nav class="nav-tabs" id="main-nav" style="display:none">
   <button class="tab-btn active" onclick="showTab('pronos')">🎯 Mes Pronos</button>
   <button class="tab-btn" onclick="showTab('classement')">🏆 Classement</button>
-  <button class="tab-btn" onclick="showTab('sites')">🗺️ Par site</button>
+  <button class="tab-btn" onclick="showTab('sites')">📍 Par site</button>
   <button class="tab-btn" onclick="showTab('resultats')">📊 Résultats</button>
   <button class="tab-btn" onclick="showTab('admin')">⚙️ Admin</button>
 </nav>
@@ -1960,7 +1960,7 @@ function renderClassementSites() {
     <div class="scoreboard-row ${rowClass}" style="cursor:pointer" onclick="toggleSiteDetail('${uid}')">
       <div><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:18px">🗺️</span>
+        <span style="font-size:18px">📍</span>
         <div>
           <div style="font-weight:600;font-size:14px">${s.site}</div>
           <div style="font-size:11px;color:var(--muted)">${s.count} joueur(s) · cliquer pour détail</div>
