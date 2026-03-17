@@ -796,6 +796,22 @@
           <input type="text" id="input-nom" placeholder="Ex: Dupont">
         </div>
         <div class="field-group">
+          <label>Site</label>
+          <select id="input-site" style="width:100%;font-size:14px;padding:10px 14px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:10px">
+            <option value="">— Choisir votre site —</option>
+            <option>Brie Comte Robert</option>
+            <option>Champigny</option>
+            <option>Chartres</option>
+            <option>Créteil</option>
+            <option>Louvre</option>
+            <option>Maroc</option>
+            <option>Pontault-Combault</option>
+            <option>Regis</option>
+            <option>Serris</option>
+            <option>Viry-Châtillon</option>
+          </select>
+        </div>
+        <div class="field-group">
           <label>PIN à 4 chiffres</label>
           <input type="password" id="input-pin" placeholder="Ex: 1234" maxlength="4" inputmode="numeric" pattern="[0-9]*">
           <span style="font-size:11px;color:var(--muted);margin-top:4px">Retenez bien votre PIN, il vous sera demandé à chaque connexion</span>
@@ -1265,10 +1281,12 @@ function toggleRegister() {
 async function registerPlayer() {
   const prenom = document.getElementById('input-prenom').value.trim();
   const nom = document.getElementById('input-nom').value.trim();
+  const site = document.getElementById('input-site').value;
   const pin = document.getElementById('input-pin').value.trim();
   const pin2 = document.getElementById('input-pin2').value.trim();
 
   if(!prenom || !nom) { showToast('Veuillez remplir prénom et nom', 'error'); return; }
+  if(!site) { showToast('Veuillez choisir votre site', 'error'); return; }
   if(!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { showToast('Le PIN doit être 4 chiffres', 'error'); return; }
   if(pin !== pin2) { showToast('Les deux PIN ne correspondent pas', 'error'); return; }
 
@@ -1278,7 +1296,7 @@ async function registerPlayer() {
   const pinHash = await hashPin(pin);
   const player = {
     id: 'p' + Date.now(),
-    prenom, nom,
+    prenom, nom, site,
     pinHash,
     color: COLORS[state.players.length % COLORS.length],
     createdAt: new Date().toISOString()
@@ -1288,6 +1306,7 @@ async function registerPlayer() {
 
   document.getElementById('input-prenom').value = '';
   document.getElementById('input-nom').value = '';
+  document.getElementById('input-site').value = '';
   document.getElementById('input-pin').value = '';
   document.getElementById('input-pin2').value = '';
 
@@ -1992,7 +2011,7 @@ function renderPlayersAdmin() {
         <div class="player-avatar" style="width:34px;height:34px;font-size:13px;background:linear-gradient(135deg,${p.color},${p.color}88)">${getInitials(p).toUpperCase()}</div>
         <div>
           <div style="font-weight:600;font-size:14px">${p.prenom} ${p.nom}</div>
-          <div style="font-size:11px;color:var(--muted)">${pronosCount} pronostic(s) · inscrit le ${new Date(p.createdAt).toLocaleDateString('fr-FR')}</div>
+          <div style="font-size:11px;color:var(--muted)">${p.site ? p.site + ' · ' : ''}${pronosCount} pronostic(s) · inscrit le ${new Date(p.createdAt).toLocaleDateString('fr-FR')}</div>
         </div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="deletePlayer('${p.id}')">🗑️ Supprimer</button>
