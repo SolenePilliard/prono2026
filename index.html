@@ -754,6 +754,7 @@
 <nav class="nav-tabs" id="main-nav" style="display:none">
   <button class="tab-btn active" onclick="showTab('pronos')">🎯 Mes Pronos</button>
   <button class="tab-btn" onclick="showTab('classement')">🏆 Classement</button>
+  <button class="tab-btn" onclick="showTab('sites')">🗺️ Par site</button>
   <button class="tab-btn" onclick="showTab('resultats')">📊 Résultats</button>
   <button class="tab-btn" onclick="showTab('admin')">⚙️ Admin</button>
 </nav>
@@ -873,6 +874,13 @@
     <div style="text-align:center; margin-top:24px">
       <button class="btn btn-gold" onclick="saveAllPronos()" style="padding:14px 36px; font-size:16px">💾 Sauvegarder tous mes pronos</button>
     </div>
+  </div>
+
+  <!-- PAGE CLASSEMENT PAR SITE -->
+  <div class="page" id="page-sites" style="display:none">
+    <div class="section-title">CLASSEMENT PAR SITE</div>
+    <div class="section-sub">Moyenne des points par joueur · mis à jour régulièrement</div>
+    <div id="sites-container"></div>
   </div>
 
   <!-- PAGE CLASSEMENT -->
@@ -1401,6 +1409,18 @@ function showTab(tab) {
   btns.forEach(b => { if(b.getAttribute('onclick').includes(tab)) b.classList.add('active'); });
 
   if(tab === 'pronos') renderPronos();
+  if(tab === 'sites') {
+    dbLoad().then(data => {
+      state.players = data.players || [];
+      state.pronos = data.pronos || {};
+      state.results = data.results || {};
+      state.topScorerPronos = data.topScorerPronos || {};
+      state.topScorerResult = data.topScorerResult || null;
+      state.hotTeamPronos = data.hotTeamPronos || {};
+      state.hotTeamResult = data.hotTeamResult || null;
+      renderClassementSites();
+    });
+  }
   if(tab === 'classement') {
     dbLoad().then(data => { state.players=data.players||[]; state.pronos=data.pronos||{}; state.results=data.results||{}; renderClassement(); });
   }
@@ -1873,6 +1893,109 @@ function renderClassement() {
 
   html += '</div>';
   document.getElementById('classement-container').innerHTML = html;
+}
+
+// ==========================================
+// CLASSEMENT PAR SITE
+// ==========================================
+
+const SITES = [
+  'Brie Comte Robert','Champigny','Chartres','Créteil',
+  'Louvre','Maroc','Pontault-Combault','Regis','Serris','Viry-Châtillon'
+];
+
+function renderClassementSites() {
+  const hasResults = Object.keys(state.results).length > 0;
+
+  if(!hasResults) {
+    document.getElementById('sites-container').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⏳</div>
+        <div style="font-size:16px;margin-bottom:8px">Pas encore de résultats</div>
+        <div>Le classement par site s'affichera dès que les premiers résultats seront saisis par le tout puissant Administrateur 😉</div>
+      </div>`;
+    return;
+  }
+
+  const siteData = {};
+  SITES.forEach(s => { siteData[s] = { total: 0, count: 0, players: [] }; });
+
+  state.players.forEach(p => {
+    const site = p.site;
+    if(!site || !siteData[site]) return;
+    const { total } = computePlayerScore(p.id);
+    siteData[site].total += total;
+    siteData[site].count++;
+    siteData[site].players.push({ name: `${p.prenom} ${p.nom}`, total, color: p.color });
+  });
+
+  const ranked = Object.entries(siteData)
+    .filter(([, d]) => d.count > 0)
+    .map(([site, d]) => ({
+      site, count: d.count, total: d.total,
+      moyenne: Math.round((d.total / d.count) * 10) / 10,
+      players: d.players.sort((a,b) => b.total - a.total)
+    }))
+    .sort((a,b) => b.moyenne - a.moyenne || b.total - a.total);
+
+  ranked.forEach((s, i) => {
+    if(i === 0) s.rank = 1;
+    else s.rank = ranked[i-1].moyenne === s.moyenne ? ranked[i-1].rank : i + 1;
+  });
+
+  let html = '<div class="scoreboard">';
+  html += `<div class="scoreboard-header">
+    <div>#</div><div>Site</div>
+    <div style="text-align:center">Joueurs</div>
+    <div style="text-align:center">Total</div>
+    <div style="text-align:center">Moy.</div>
+  </div>`;
+
+  ranked.forEach(s => {
+    const rowClass = s.rank===1?'top1':s.rank===2?'top2':s.rank===3?'top3':'';
+    const badgeClass = s.rank===1?'rank-1':s.rank===2?'rank-2':s.rank===3?'rank-3':'rank-other';
+    const uid = 'site-' + s.site.replace(/[\s-]/g,'_');
+
+    html += `
+    <div class="scoreboard-row ${rowClass}" style="cursor:pointer" onclick="toggleSiteDetail('${uid}')">
+      <div><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">🗺️</span>
+        <div>
+          <div style="font-weight:600;font-size:14px">${s.site}</div>
+          <div style="font-size:11px;color:var(--muted)">${s.count} joueur(s) · cliquer pour détail</div>
+        </div>
+      </div>
+      <div class="score-cell" style="text-align:center;color:var(--muted)">${s.count}</div>
+      <div class="score-cell" style="text-align:center;color:var(--muted)">${s.total}</div>
+      <div class="score-total">${s.moyenne}</div>
+    </div>
+    <div id="${uid}" style="display:none;background:var(--dark3);padding:10px 16px;border-bottom:1px solid var(--border)">
+      ${s.players.map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="player-avatar" style="width:26px;height:26px;font-size:10px;background:linear-gradient(135deg,${p.color},${p.color}88)">${p.name.split(' ').map(n=>n[0]).join('').toUpperCase()}</div>
+            <span style="font-size:13px">${p.name}</span>
+          </div>
+          <span class="points-badge pts-good">${p.total} pts</span>
+        </div>`).join('')}
+    </div>`;
+  });
+
+  const emptySites = SITES.filter(s => !siteData[s] || siteData[s].count === 0);
+  if(emptySites.length) {
+    html += `<div style="padding:12px 16px;font-size:12px;color:var(--muted);text-align:center">
+      Sans joueur inscrit : ${emptySites.join(', ')}
+    </div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('sites-container').innerHTML = html;
+}
+
+function toggleSiteDetail(uid) {
+  const el = document.getElementById(uid);
+  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 // ==========================================
