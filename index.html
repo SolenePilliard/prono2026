@@ -2391,7 +2391,6 @@ function toggleAdminSection(id) {
 
 function renderTeamInputs(phaseKey) {
   const phaseMatches = KNOCKOUT_MATCHES.filter(m => m.roundKey === phaseKey);
-  const opts = COUNTRIES.map(c => `<option value="${c.name}|${c.flag}">${c.name}</option>`).join('');
 
   let html = `<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px">
     <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Équipes qualifiées</div>`;
@@ -2401,28 +2400,29 @@ function renderTeamInputs(phaseKey) {
     const hVal = kt.home ? `${kt.home.name}|${kt.home.flag}` : '';
     const aVal = kt.away ? `${kt.away.name}|${kt.away.flag}` : '';
     const label = m.id.replace('r16_','S').replace('r8_','H').replace('qf_','Q').replace('sf_','D').replace('final','Finale');
+    const isSaved = hVal && aVal;
+
+    // Pré-sélection intégrée dans les options
+    const homeOpts = COUNTRIES.map(c => {
+      const v = `${c.name}|${c.flag}`;
+      return `<option value="${v}" ${v===hVal?'selected':''}>${c.name}</option>`;
+    }).join('');
+    const awayOpts = COUNTRIES.map(c => {
+      const v = `${c.name}|${c.flag}`;
+      return `<option value="${v}" ${v===aVal?'selected':''}>${c.name}</option>`;
+    }).join('');
+
     html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
       <span style="font-size:11px;color:var(--muted);min-width:60px">${label}</span>
       <select id="kt-h-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-        <option value="">— Équipe domicile —</option>${opts}
+        <option value="">— Équipe domicile —</option>${homeOpts}
       </select>
       <span style="color:var(--muted)">vs</span>
       <select id="kt-a-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-        <option value="">— Équipe extérieur —</option>${opts}
+        <option value="">— Équipe extérieur —</option>${awayOpts}
       </select>
-      <button class="btn btn-outline btn-sm" onclick="saveKnockoutTeams('${m.id}')">✓</button>
+      <button class="btn btn-outline btn-sm ${isSaved?'btn-green':''}" onclick="saveKnockoutTeams('${m.id}')" style="${isSaved?'color:var(--green-light);border-color:var(--green-light)':''}">✓</button>
     </div>`;
-    // Pre-select saved values
-    if(hVal || aVal) {
-      html += `<script>
-        (function(){
-          var sh = document.getElementById('kt-h-${m.id}');
-          var sa = document.getElementById('kt-a-${m.id}');
-          if(sh) { for(var o of sh.options) if(o.value==='${hVal}') { o.selected=true; break; } }
-          if(sa) { for(var o of sa.options) if(o.value==='${aVal}') { o.selected=true; break; } }
-        })();
-      <\/script>`;
-    }
   });
 
   html += `</div>`;
