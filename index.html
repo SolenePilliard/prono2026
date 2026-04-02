@@ -1428,16 +1428,24 @@ function showTab(tab) {
     dbLoad().then(data => { state.players=data.players||[]; state.pronos=data.pronos||{}; state.results=data.results||{}; renderResultats(); });
   }
   if(tab === 'admin') {
-    // Réafficher le verrou à chaque fois qu'on arrive sur l'onglet admin
     const lock = document.getElementById('admin-lock');
     const content = document.getElementById('admin-content');
     if(lock && content) {
-      // Ne reset que si le contenu n'est pas déjà visible (session courante)
       if(content.style.display === 'none') {
         lock.style.display = 'block';
       } else {
-        renderPlayersAdmin();
-        renderAdmin();
+        dbLoad().then(data => {
+          state.knockoutTeams = data.knockoutTeams || {};
+          state.unlockedPhases = data.unlockedPhases || state.unlockedPhases;
+          state.players = data.players || [];
+          state.results = data.results || {};
+          state.topScorerResult = data.topScorerResult || null;
+          state.hotTeamResult = data.hotTeamResult || null;
+          state.topScorerPronos = data.topScorerPronos || {};
+          state.hotTeamPronos = data.hotTeamPronos || {};
+          renderPlayersAdmin();
+          renderAdmin();
+        });
       }
     }
   }
@@ -2399,34 +2407,54 @@ function renderTeamInputs(phaseKey) {
     const kt = state.knockoutTeams[m.id] || {};
     const hVal = kt.home ? `${kt.home.name}|${kt.home.flag}` : '';
     const aVal = kt.away ? `${kt.away.name}|${kt.away.flag}` : '';
+    const isSaved = kt.home && kt.away;
     const label = m.id.replace('r16_','S').replace('r8_','H').replace('qf_','Q').replace('sf_','D').replace('final','Finale');
-    const isSaved = hVal && aVal;
 
-    // Pré-sélection intégrée dans les options
-    const homeOpts = COUNTRIES.map(c => {
-      const v = `${c.name}|${c.flag}`;
-      return `<option value="${v}" ${v===hVal?'selected':''}>${c.name}</option>`;
-    }).join('');
-    const awayOpts = COUNTRIES.map(c => {
-      const v = `${c.name}|${c.flag}`;
-      return `<option value="${v}" ${v===aVal?'selected':''}>${c.name}</option>`;
-    }).join('');
+    if(isSaved) {
+      // Afficher en texte avec option de modifier
+      html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted);min-width:60px">${label}</span>
+        <div style="flex:1;display:flex;align-items:center;gap:8px;background:rgba(37,163,85,0.1);border:1px solid rgba(37,163,85,0.3);border-radius:8px;padding:7px 12px">
+          <span style="font-size:13px;font-weight:600">${flagImg(kt.home.flag,16)} ${kt.home.name}</span>
+          <span style="color:var(--muted)">vs</span>
+          <span style="font-size:13px;font-weight:600">${flagImg(kt.away.flag,16)} ${kt.away.name}</span>
+          <span style="color:var(--green-light);margin-left:auto">✓</span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="editKnockoutTeam('${m.id}')" style="font-size:11px">✏️</button>
+      </div>`;
+    } else {
+      // Afficher les dropdowns pour saisie
+      const homeOpts = COUNTRIES.map(c => {
+        const v = `${c.name}|${c.flag}`;
+        return `<option value="${v}" ${v===hVal?'selected':''}>${c.name}</option>`;
+      }).join('');
+      const awayOpts = COUNTRIES.map(c => {
+        const v = `${c.name}|${c.flag}`;
+        return `<option value="${v}" ${v===aVal?'selected':''}>${c.name}</option>`;
+      }).join('');
 
-    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--muted);min-width:60px">${label}</span>
-      <select id="kt-h-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-        <option value="">— Équipe domicile —</option>${homeOpts}
-      </select>
-      <span style="color:var(--muted)">vs</span>
-      <select id="kt-a-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
-        <option value="">— Équipe extérieur —</option>${awayOpts}
-      </select>
-      <button class="btn btn-outline btn-sm ${isSaved?'btn-green':''}" onclick="saveKnockoutTeams('${m.id}')" style="${isSaved?'color:var(--green-light);border-color:var(--green-light)':''}">✓</button>
-    </div>`;
+      html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted);min-width:60px">${label}</span>
+        <select id="kt-h-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+          <option value="">— Équipe domicile —</option>${homeOpts}
+        </select>
+        <span style="color:var(--muted)">vs</span>
+        <select id="kt-a-${m.id}" style="flex:1;min-width:140px;font-size:13px;padding:7px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+          <option value="">— Équipe extérieur —</option>${awayOpts}
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="saveKnockoutTeams('${m.id}')">✓</button>
+      </div>`;
+    }
   });
 
   html += `</div>`;
   return html;
+}
+
+function editKnockoutTeam(matchId) {
+  // Supprimer l'entrée pour repasser en mode édition
+  delete state.knockoutTeams[matchId];
+  renderAdminPreserveState();
 }
 
 function saveKnockoutTeams(matchId) {
