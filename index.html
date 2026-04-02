@@ -2449,7 +2449,9 @@ function saveKnockoutTeams(matchId) {
     if(away) state.knockoutTeams[matchId].away = away;
     dbSave().then(() => {
       showToast('✅ Équipes enregistrées !', 'success');
-      renderAdmin();
+      // Mettre à jour le badge du sous-accordéon sans tout recharger
+      const btn = document.querySelector(`button[onclick="saveKnockoutTeams('${matchId}')"]`);
+      if(btn) { btn.textContent = '✓'; btn.style.color = 'var(--green-light)'; }
     });
   }
 }
@@ -2459,18 +2461,31 @@ function saveAdminTopScorer() {
   if(!val) { showToast('Choisissez un joueur', 'error'); return; }
   const [player, team] = val.split('|');
   state.topScorerResult = { team, player };
-  dbSave().then(() => {
-    showToast(`🥇 Meilleur buteur enregistré : ${player} (${team})`, 'success');
-    renderAdmin();
-  });
+  dbSave().then(() => showToast(`🥇 Meilleur buteur enregistré : ${player} (${team})`, 'success'));
 }
+
 function saveAdminHotTeam() {
   const team = document.getElementById('admin-ht-team')?.value;
   if(!team) { showToast('Choisissez une équipe', 'error'); return; }
   state.hotTeamResult = team;
-  dbSave().then(() => {
-    showToast(`🤬 Chauds Bouillants enregistrés : ${team}`, 'success');
-    renderAdmin();
+  dbSave().then(() => showToast(`🤬 Chauds Bouillants enregistrés : ${team}`, 'success'));
+}
+
+function renderAdminPreserveState() {
+  // Mémoriser quels accordéons sont ouverts
+  const openIds = [];
+  document.querySelectorAll('[id^="admin-"]').forEach(el => {
+    if(el.style.display !== 'none' && el.id !== 'admin-content' && el.id !== 'admin-container') {
+      openIds.push(el.id);
+    }
+  });
+  renderAdmin();
+  // Réouvrir les accordéons qui l'étaient
+  openIds.forEach(id => {
+    const el = document.getElementById(id);
+    const arrow = document.getElementById('aarrow-' + id);
+    if(el) { el.style.display = 'block'; }
+    if(arrow) arrow.textContent = '▲';
   });
 }
 
@@ -2478,7 +2493,7 @@ function unlockPhase(key) {
   state.unlockedPhases[key] = true;
   dbSave().then(() => {
     showToast(`✅ Phase débloquée !`, 'success');
-    renderAdmin();
+    renderAdminPreserveState();
   });
 }
 
@@ -2487,7 +2502,7 @@ function lockPhase(key) {
   state.unlockedPhases[key] = false;
   dbSave().then(() => {
     showToast('🔒 Phase reverrouillée', 'success');
-    renderAdmin();
+    renderAdminPreserveState();
   });
 }
 
