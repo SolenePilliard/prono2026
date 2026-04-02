@@ -1147,20 +1147,19 @@ const ALL_MATCHES = [...generateGroupMatches(), ...KNOCKOUT_MATCHES];
 function getDeadlineParis(matchDeadline) {
   // matchDeadline = 'YYYY-MM-DD' (jour du match)
   // On ferme à 23:59:59 heure Paris la VEILLE
-  // On construit la date de la veille à 23:59:59 en Europe/Paris
   const [y, m, d] = matchDeadline.split('-').map(Number);
-  // Veille = même date - 1 jour, à 23:59:59
-  const veille = new Date(y, m-1, d-1, 23, 59, 59);
-  // Convertir en timestamp Paris : on utilise Intl pour détecter l'offset Paris
-  const parisFmt = new Intl.DateTimeFormat('fr-FR', {
-    timeZone: 'Europe/Paris',
-    year:'numeric', month:'2-digit', day:'2-digit',
-    hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false
-  });
-  // On crée un Date qui correspond à "veille 23:59:59 heure Paris"
-  // Astuce : on parse le timestamp UTC correspondant
-  const target = `${y}-${String(m).padStart(2,'0')}-${String(d-1).padStart(2,'0')}T23:59:59`;
-  // Calculer l'offset Europe/Paris pour cette date
+
+  // Calculer la veille proprement (gère les changements de mois/année)
+  const matchDate = new Date(y, m-1, d);
+  const veille = new Date(matchDate);
+  veille.setDate(veille.getDate() - 1);
+
+  const yv = veille.getFullYear();
+  const mv = String(veille.getMonth()+1).padStart(2,'0');
+  const dv = String(veille.getDate()).padStart(2,'0');
+
+  // Construire "veille à 23:59:59 UTC" puis ajuster avec l'offset Paris
+  const target = `${yv}-${mv}-${dv}T23:59:59`;
   const utcDate = new Date(target + 'Z');
   const parisOffset = getParisOffsetMinutes(utcDate);
   return new Date(utcDate.getTime() - parisOffset * 60000);
