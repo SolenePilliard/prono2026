@@ -1424,7 +1424,13 @@ function showTab(tab) {
     dbLoad().then(data => { state.players=data.players||[]; state.pronos=data.pronos||{}; state.results=data.results||{}; renderClassement(); });
   }
   if(tab === 'resultats') {
-    dbLoad().then(data => { state.players=data.players||[]; state.pronos=data.pronos||{}; state.results=data.results||{}; renderResultats(); });
+    dbLoad().then(data => {
+      state.players = data.players || [];
+      state.pronos = data.pronos || {};
+      state.results = data.results || {};
+      state.knockoutTeams = data.knockoutTeams || {};
+      renderResultats();
+    });
   }
   if(tab === 'admin') {
     const lock = document.getElementById('admin-lock');
