@@ -1286,8 +1286,11 @@ function toggleRegister() {
 }
 
 async function registerPlayer() {
-  const prenom = document.getElementById('input-prenom').value.trim();
-  const nom = document.getElementById('input-nom').value.trim();
+  const prenomRaw = document.getElementById('input-prenom').value.trim();
+  const nomRaw = document.getElementById('input-nom').value.trim();
+  // Formatage : prénom avec majuscule initiale, nom tout en majuscules
+  const prenom = prenomRaw.charAt(0).toUpperCase() + prenomRaw.slice(1).toLowerCase();
+  const nom = nomRaw.toUpperCase();
   const site = document.getElementById('input-site').value;
   const pin = document.getElementById('input-pin').value.trim();
   const pin2 = document.getElementById('input-pin2').value.trim();
@@ -2191,7 +2194,11 @@ function renderPlayersAdmin() {
     return;
   }
 
-  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  let html = `<div style="margin-bottom:12px">
+    <button class="btn btn-outline btn-sm" onclick="normalizePlayerNames()">✏️ Normaliser les noms existants</button>
+    <span style="font-size:11px;color:var(--muted);margin-left:8px">Prénom avec majuscule initiale · Nom en majuscules</span>
+  </div>`;
+  html += '<div style="display:flex;flex-direction:column;gap:8px">';
   state.players.forEach(p => {
     const pronosCount = Object.keys(state.pronos[p.id] || {}).length;
     html += `
@@ -2252,6 +2259,18 @@ async function confirmResetPin() {
   closeModal();
   dbSave().then(() => {
     showToast(`✅ PIN réinitialisé pour ${player.prenom} ${player.nom}`, 'success');
+    renderPlayersAdmin();
+  });
+}
+
+function normalizePlayerNames() {
+  if(!confirm('Normaliser tous les noms ? (Prénom: majuscule initiale · Nom: MAJUSCULES)')) return;
+  state.players.forEach(p => {
+    p.prenom = p.prenom.charAt(0).toUpperCase() + p.prenom.slice(1).toLowerCase();
+    p.nom = p.nom.toUpperCase();
+  });
+  dbSave().then(() => {
+    showToast('✅ Noms normalisés !', 'success');
     renderPlayersAdmin();
   });
 }
