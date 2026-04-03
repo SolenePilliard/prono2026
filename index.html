@@ -2016,78 +2016,131 @@ function renderResultats() {
     rounds[m.round].push(m);
   });
 
-  let html = '';
+  // Séparer groupes et KO
+  const groupRounds = Object.entries(rounds).filter(([,ms]) => ms[0].roundKey === 'group');
+  const koRounds = Object.entries(rounds).filter(([,ms]) => ms[0].roundKey !== 'group');
 
-  Object.entries(rounds).forEach(([roundName, matches]) => {
-    const played = matches.filter(m => state.results[m.id]);
-    if(played.length === 0) return;
-
-    html += `<div class="round-title">${getRoundIcon(matches[0].roundKey)} ${roundName}</div>`;
-
-    played.forEach(m => {
-      const r = state.results[m.id];
-      const coeff = ROUND_COEFFICIENTS[m.roundKey] || 1;
-      const kt = state.knockoutTeams[m.id] || {};
-      const homeTeam = kt.home || m.home;
-      const awayTeam = kt.away || m.away;
-
-      const pronosForMatch = state.players.map(p => {
-        const prono = (state.pronos[p.id] || {})[m.id];
-        const pts = prono ? calcPoints(prono, r, m.roundKey) : null;
-        return { player: p, prono, pts };
-      }).filter(x => x.prono);
-
-      const perfect = pronosForMatch.filter(x => x.pts >= 5 * coeff).length;
-      const good = pronosForMatch.filter(x => x.pts > 0 && x.pts < 5 * coeff).length;
-      const zero = pronosForMatch.filter(x => x.pts === 0).length;
-      const total = pronosForMatch.length;
-      const uid = 'res-' + m.id;
-
-      const pronосRows = pronosForMatch.sort((a,b) => b.pts - a.pts).map(({player, prono, pts}) => {
-        const cls = pts >= 5*coeff ? 'pts-perfect' : pts > 0 ? 'pts-good' : 'pts-zero';
-        const icon = pts >= 5*coeff ? '⭐' : pts > 0 ? '✅' : '❌';
-        return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--dark3);padding:8px 12px;border-radius:10px;gap:8px">'
-          + '<div style="display:flex;align-items:center;gap:8px;min-width:0">'
-          + '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;flex-shrink:0;background:linear-gradient(135deg,' + player.color + ',' + player.color + '88)">' + getInitials(player).toUpperCase() + '</div>'
-          + '<div style="min-width:0">'
-          + '<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + player.prenom + ' ' + player.nom + '</div>'
-          + '<div style="font-size:12px;color:var(--muted)">' + icon + ' ' + prono.home + ' — ' + prono.away + '</div>'
-          + '</div></div>'
-          + '<span class="points-badge ' + cls + '" style="flex-shrink:0">' + pts + ' pts</span>'
-          + '</div>';
-      }).join('');
-
-      html += '<div class="admin-section" style="margin-bottom:10px;padding:0;overflow:hidden">'
-        + '<div onclick="toggleResult(\'' + uid + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;gap:12px;flex-wrap:wrap">'
-        + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
-        + '<span style="font-size:22px">' + flagImg(homeTeam.flag, 24) + '</span>'
-        + '<span style="font-weight:700;font-size:14px">' + homeTeam.name + '</span>'
-        + '<span style="font-family:\'Bebas Neue\';font-size:22px;padding:4px 14px;background:var(--dark3);border-radius:8px;letter-spacing:2px">' + r.home + ' — ' + r.away + '</span>'
-        + '<span style="font-weight:700;font-size:14px">' + awayTeam.name + '</span>'
-        + '<span style="font-size:22px">' + flagImg(awayTeam.flag, 24) + '</span>'
-        + (coeff > 1 ? '<span class="chip active">Coeff ' + ROUND_LABELS[m.roundKey] + '</span>' : '')
-        + '</div>'
-        + '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0">'
-        + '<div style="display:flex;gap:6px">'
-        + (perfect > 0 ? '<span class="points-badge pts-perfect">⭐ ' + perfect + '</span>' : '')
-        + (good > 0 ? '<span class="points-badge pts-good">✅ ' + good + '</span>' : '')
-        + (zero > 0 ? '<span class="points-badge pts-zero">❌ ' + zero + '</span>' : '')
-        + (total === 0 ? '<span style="font-size:12px;color:var(--muted)">Aucun prono</span>' : '')
-        + '</div>'
-        + '<span id="arrow-' + uid + '" style="color:var(--muted);font-size:16px;transition:transform 0.2s">▼</span>'
-        + '</div></div>'
-        + '<div id="' + uid + '" style="display:none;border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px">'
-        + (total > 0
-          ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">' + pronосRows + '</div>'
-          : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:8px 0">Aucun participant n\'a pronostiqué ce match</div>')
-        + '</div></div>';
-    });
-  });
-
-  if(!html) {
-    html = '<div class="empty-state"><div class="icon">📋</div><div>Aucun résultat saisi pour l\'instant</div></div>';
+  const hasAnyResult = Object.keys(state.results).length > 0;
+  if(!hasAnyResult) {
+    document.getElementById('resultats-container').innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>Aucun résultat saisi pour l\'instant</div></div>';
+    return;
   }
 
+  // Helper : générer les cards de match
+  function matchCard(m) {
+    const r = state.results[m.id];
+    if(!r) return '';
+    const coeff = ROUND_COEFFICIENTS[m.roundKey] || 1;
+    const kt = state.knockoutTeams[m.id] || {};
+    const homeTeam = kt.home || m.home;
+    const awayTeam = kt.away || m.away;
+    const pronosForMatch = state.players.map(p => {
+      const prono = (state.pronos[p.id] || {})[m.id];
+      const pts = prono ? calcPoints(prono, r, m.roundKey) : null;
+      return { player: p, prono, pts };
+    }).filter(x => x.prono);
+    const perfect = pronosForMatch.filter(x => x.pts >= 5*coeff).length;
+    const good = pronosForMatch.filter(x => x.pts > 0 && x.pts < 5*coeff).length;
+    const zero = pronosForMatch.filter(x => x.pts === 0).length;
+    const total = pronosForMatch.length;
+    const uid = 'res-' + m.id;
+    const rows = pronosForMatch.sort((a,b) => b.pts - a.pts).map(({player, prono, pts}) => {
+      const cls = pts >= 5*coeff ? 'pts-perfect' : pts > 0 ? 'pts-good' : 'pts-zero';
+      const icon = pts >= 5*coeff ? '⭐' : pts > 0 ? '✅' : '❌';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--dark3);padding:8px 12px;border-radius:10px;gap:8px">'
+        + '<div style="display:flex;align-items:center;gap:8px;min-width:0">'
+        + '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;flex-shrink:0;background:linear-gradient(135deg,' + player.color + ',' + player.color + '88)">' + getInitials(player).toUpperCase() + '</div>'
+        + '<div style="min-width:0"><div style="font-size:13px;font-weight:600">' + player.prenom + ' ' + player.nom + '</div>'
+        + '<div style="font-size:12px;color:var(--muted)">' + icon + ' ' + prono.home + ' — ' + prono.away + '</div></div></div>'
+        + '<span class="points-badge ' + cls + '" style="flex-shrink:0">' + pts + ' pts</span></div>';
+    }).join('');
+    return '<div class="admin-section" style="margin-bottom:8px;padding:0;overflow:hidden">'
+      + '<div onclick="toggleResult(\'' + uid + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;gap:12px;flex-wrap:wrap">'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      + '<span>' + flagImg(homeTeam.flag, 22) + '</span>'
+      + '<span style="font-weight:700;font-size:13px">' + homeTeam.name + '</span>'
+      + '<span style="font-family:\'Bebas Neue\';font-size:20px;padding:3px 12px;background:var(--dark3);border-radius:8px">' + r.home + ' — ' + r.away + '</span>'
+      + '<span style="font-weight:700;font-size:13px">' + awayTeam.name + '</span>'
+      + '<span>' + flagImg(awayTeam.flag, 22) + '</span>'
+      + (coeff > 1 ? '<span class="chip active">×' + coeff + '</span>' : '')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+      + (perfect > 0 ? '<span class="points-badge pts-perfect">⭐ ' + perfect + '</span>' : '')
+      + (good > 0 ? '<span class="points-badge pts-good">✅ ' + good + '</span>' : '')
+      + (zero > 0 ? '<span class="points-badge pts-zero">❌ ' + zero + '</span>' : '')
+      + (total === 0 ? '<span style="font-size:11px;color:var(--muted)">Aucun prono</span>' : '')
+      + '<span id="arrow-' + uid + '" style="color:var(--muted);font-size:14px">▼</span>'
+      + '</div></div>'
+      + '<div id="' + uid + '" style="display:none;border-top:1px solid rgba(255,255,255,0.06);padding:12px 16px">'
+      + (total > 0 ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">' + rows + '</div>'
+        : '<div style="color:var(--muted);font-size:13px;text-align:center">Aucun participant n\'a pronostiqué ce match</div>')
+      + '</div></div>';
+  }
+
+  let html = '';
+
+  // ---- PHASES KO EN PREMIER (accordéons individuels) ----
+  koRounds.forEach(([roundName, matches]) => {
+    const roundKey = matches[0].roundKey;
+    const played = matches.filter(m => state.results[m.id]);
+    if(played.length === 0) return;
+    const uid = 'res-round-' + roundKey;
+    html += `
+    <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
+      <div onclick="toggleResult('${uid}')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--card2);gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">${getRoundIcon(roundKey)}</span>
+          <span style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1.5px">${roundName}</span>
+          <span style="font-size:12px;color:var(--muted)">${played.length}/${matches.length} joués</span>
+        </div>
+        <span id="arrow-${uid}" style="color:var(--muted);font-size:16px">▼</span>
+      </div>
+      <div id="${uid}" style="display:none;background:var(--card);padding:10px 12px">
+        ${played.map(m => matchCard(m)).join('')}
+      </div>
+    </div>`;
+  });
+
+  // ---- PHASE DE GROUPES EN BAS (grand accordéon replié) ----
+  const groupPlayed = groupRounds.flatMap(([,ms]) => ms.filter(m => state.results[m.id]));
+  if(groupPlayed.length > 0) {
+    let groupHtml = '';
+    groupRounds.forEach(([roundName, matches]) => {
+      const played = matches.filter(m => state.results[m.id]);
+      if(played.length === 0) return;
+      const gid = 'res-g-' + roundName.replace(/\s/g,'_');
+      groupHtml += `
+      <div style="border-bottom:1px solid rgba(255,255,255,0.04)">
+        <div onclick="toggleResult('${gid}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;background:var(--dark3)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:600;font-size:13px">${roundName}</span>
+            <span style="font-size:11px;color:var(--muted)">${played.length}/${matches.length}</span>
+          </div>
+          <span id="arrow-${gid}" style="color:var(--muted);font-size:13px">▼</span>
+        </div>
+        <div id="${gid}" style="display:none;background:var(--card);padding:8px 10px">
+          ${played.map(m => matchCard(m)).join('')}
+        </div>
+      </div>`;
+    });
+
+    html += `
+    <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">
+      <div onclick="toggleResult('res-groups-all')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--card2);gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">🟢</span>
+          <span style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1.5px">PHASE DE GROUPES</span>
+          <span style="font-size:12px;color:var(--muted)">${groupPlayed.length}/${groupRounds.flatMap(([,ms])=>ms).length} joués</span>
+        </div>
+        <span id="arrow-res-groups-all" style="color:var(--muted);font-size:16px">▼</span>
+      </div>
+      <div id="res-groups-all" style="display:none;background:rgba(37,163,85,0.03)">
+        ${groupHtml}
+      </div>
+    </div>`;
+  }
+
+  if(!html) html = '<div class="empty-state"><div class="icon">📋</div><div>Aucun résultat saisi pour l\'instant</div></div>';
   document.getElementById('resultats-container').innerHTML = html;
 }
 
