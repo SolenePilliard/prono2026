@@ -1652,6 +1652,12 @@ function renderPronos() {
         🔒 Cette phase sera débloquée par l'admin une fois les équipes qualifiées connues.
       </div>`;
     } else {
+      if(roundKey === 'r16') {
+        html += `<div style="padding:10px 16px 6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:12px;color:var(--muted)">16 matchs</div>
+          <button class="btn btn-outline" onclick="confirmRandomFillR16()" style="font-size:12px;padding:6px 14px">🎲 Remplir au hasard les seizièmes non saisis</button>
+        </div>`;
+      }
       html += `<div class="matches-grid" style="padding:12px">`;
       matches.forEach(m => {
         const p = myPronos[m.id];
@@ -1789,6 +1795,36 @@ const REALISTIC_SCORES = [
   // Rares (4 buts)
   [4,3],[3,4],[4,4],
 ];
+
+function confirmRandomFillR16() {
+  if(!confirm('🎲 Remplir automatiquement tous les seizièmes non encore saisis ?\n\nVos pronos déjà remplis ne seront pas modifiés.')) return;
+  randomFillRound('r16');
+}
+
+function randomFillRound(roundKey) {
+  const uid = state.currentUser.id;
+  if(!state.pronos[uid]) state.pronos[uid] = {};
+  let filled = 0;
+
+  ALL_MATCHES.forEach(m => {
+    if(m.roundKey !== roundKey) return;
+    if(isMatchClosed(m)) return;
+    const existing = state.pronos[uid][m.id];
+    if(existing && existing.home !== '' && existing.away !== '') return;
+    const score = REALISTIC_SCORES[Math.floor(Math.random() * REALISTIC_SCORES.length)];
+    state.pronos[uid][m.id] = { home: score[0], away: score[1] };
+    filled++;
+  });
+
+  if(filled === 0) {
+    showToast('Tous les seizièmes sont déjà remplis !', 'error');
+    return;
+  }
+  dbSave().then(() => {
+    showToast(`🎲 ${filled} pronostic(s) générés aléatoirement !`, 'success');
+    renderPronos();
+  });
+}
 
 function confirmRandomFill() {
   if(!confirm('🎲 Remplir automatiquement tous les matchs de la phase de groupes non encore saisis ?\n\nVos pronos déjà remplis ne seront pas modifiés.')) return;
