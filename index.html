@@ -1635,6 +1635,23 @@ function renderPronos() {
             ? `<div class="prono-saved">✅ Enregistré</div>`
             : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`;
 
+        // Boutons TAB si score égal
+        const hVal = p ? p.home : '';
+        const aVal = p ? p.away : '';
+        const isDraw = hVal !== '' && aVal !== '' && parseInt(hVal) === parseInt(aVal);
+        const tabWinner = p ? p.tabWinner : null;
+        const tabHtml = isDraw && !isClosed ? `
+          <div style="margin-top:6px;display:flex;gap:6px;justify-content:center">
+            <div style="font-size:10px;color:var(--gold);margin-bottom:3px;text-align:center;width:100%">🎯 Vainqueur aux TAB</div>
+            <button onclick="setTabWinner('${m.id}','home')" style="flex:1;padding:5px 8px;border-radius:8px;border:2px solid ${tabWinner==='home'?'var(--gold)':'var(--border)'};background:${tabWinner==='home'?'rgba(245,200,66,0.15)':'var(--dark3)'};color:${tabWinner==='home'?'var(--gold)':'var(--muted)'};font-size:11px;font-weight:600;cursor:pointer">
+              ${flagImg(homeTeam.flag,14)} ${homeTeam.name}
+            </button>
+            <button onclick="setTabWinner('${m.id}','away')" style="flex:1;padding:5px 8px;border-radius:8px;border:2px solid ${tabWinner==='away'?'var(--gold)':'var(--border)'};background:${tabWinner==='away'?'rgba(245,200,66,0.15)':'var(--dark3)'};color:${tabWinner==='away'?'var(--gold)':'var(--muted)'};font-size:11px;font-weight:600;cursor:pointer">
+              ${flagImg(awayTeam.flag,14)} ${awayTeam.name}
+            </button>
+          </div>` : (isDraw && isClosed && tabWinner ? `
+          <div style="margin-top:4px;font-size:11px;color:var(--gold);text-align:center">🎯 TAB : ${tabWinner==='home'?homeTeam.name:awayTeam.name}</div>` : '');
+
         html += `
         <div class="${cardClass}" id="mc-${m.id}">
           <div class="team-side">
@@ -1648,6 +1665,7 @@ function renderPronos() {
               <span class="vs-sep">-</span>
               <input type="text" inputmode="numeric" class="score-input" id="pa-${m.id}" placeholder="?" maxlength="1" value="${p ? p.away : ''}" oninput="filterScore(this)" onchange="autoSaveProno('${m.id}')" ${inputDisabled}>
             </div>
+            ${tabHtml}
             ${statusHtml}
             <div style="font-size:11px;color:var(--gold);font-weight:700;margin-top:3px">Coeff ${ROUND_LABELS[m.roundKey]}</div>
           </div>
@@ -1687,6 +1705,19 @@ function filterScore(input) {
   input.value = input.value.replace(/[^0-9]/g, '').slice(0, 1);
 }
 
+function setTabWinner(matchId, side) {
+  const match = ALL_MATCHES.find(m => m.id === matchId);
+  if(!match || isMatchClosed(match)) return;
+  const uid = state.currentUser.id;
+  if(!state.pronos[uid]) state.pronos[uid] = {};
+  if(!state.pronos[uid][matchId]) return; // score pas encore saisi
+  state.pronos[uid][matchId].tabWinner = side;
+  dbSave().then(() => {
+    showToast(`🎯 TAB enregistré !`, 'success');
+    renderPronos();
+  });
+}
+
 function autoSaveProno(matchId) {
   const match = ALL_MATCHES.find(m => m.id === matchId);
   if(match && isMatchClosed(match)) {
@@ -1698,9 +1729,17 @@ function autoSaveProno(matchId) {
   const h = document.getElementById('ph-'+matchId).value;
   const a = document.getElementById('pa-'+matchId).value;
   if(h !== '' && a !== '') {
-    state.pronos[uid][matchId] = { home: parseInt(h), away: parseInt(a) };
+    const existing = state.pronos[uid][matchId] || {};
+    const newScore = { home: parseInt(h), away: parseInt(a) };
+    // Réinitialiser tabWinner si le score n'est plus nul
+    if(newScore.home !== newScore.away) delete newScore.tabWinner;
+    else if(existing.tabWinner) newScore.tabWinner = existing.tabWinner;
+    state.pronos[uid][matchId] = newScore;
     const card = document.getElementById('mc-'+matchId);
     if(card) card.classList.add('has-prono');
+    // Rafraîchir la card pour afficher/masquer les boutons TAB
+    const match = ALL_MATCHES.find(m => m.id === matchId);
+    if(match && match.roundKey !== 'group') renderPronos();
   }
 }
 
@@ -1802,8 +1841,31 @@ function getResult(score) {
 function calcPoints(prono, result, roundKey) {
   if(!prono || !result) return 0;
   const coeff = ROUND_COEFFICIENTS[roundKey] || 1;
-  if(prono.home === result.home && prono.away === result.away) return 5 * coeff;
-  if(getResult(prono) === getResult(result)) return 2 * coeff;
+  const isKO = roundKey !== 'group' && roundKey !== 'r16';
+
+  // Score exact
+  if(prono.home === result.home && prono.away === result.away) {
+    // Si match nul avec TAB, vérifier aussi le vainqueur TAB
+    if(isKO && result.home === result.away) {
+      if(result.tabWinner && prono.tabWinner && prono.tabWinner === result.tabWinner) return 5 * coeff;
+      if(result.tabWinner && !prono.tabWinner) return 2 * coeff; // score exact mais pas de TAB coché
+      if(!result.tabWinner) return 5 * coeff;
+    }
+    return 5 * coeff;
+  }
+
+  // Bon gagnant/nul
+  const pronoResult = getResult(prono);
+  const realResult = getResult(result);
+  if(pronoResult === realResult) {
+    // Si nul avec TAB en KO, vérifier le vainqueur TAB
+    if(isKO && realResult === 'draw' && result.tabWinner) {
+      if(prono.tabWinner && prono.tabWinner === result.tabWinner) return 2 * coeff;
+      return 0; // nul pronostiqué mais mauvais gagnant TAB
+    }
+    return 2 * coeff;
+  }
+
   return 0;
 }
 
@@ -2367,18 +2429,38 @@ function renderAdmin() {
       const kt = state.knockoutTeams[m.id] || {};
       const homeTeam = kt.home || m.home;
       const awayTeam = kt.away || m.away;
-      matchRows += `<div class="result-row" id="rr-${m.id}">
-        <div class="team-label right">${flagImg(homeTeam.flag, 20)} ${homeTeam.name}</div>
-        <input type="text" inputmode="numeric" class="score-input" style="width:44px" id="rh-${m.id}" placeholder="?" maxlength="1" value="${r.home !== undefined ? r.home : ''}" oninput="filterScore(this)">
-        <div class="result-row-center">
-          <span style="color:var(--muted);font-size:12px">—</span>
-          <span style="font-size:10px;color:var(--muted)">📅 ${m.date}</span>
+      const isKO = m.roundKey !== 'group';
+      const rHome = r.home !== undefined ? r.home : '';
+      const rAway = r.away !== undefined ? r.away : '';
+      const isDraw = rHome !== '' && rAway !== '' && parseInt(rHome) === parseInt(rAway);
+      const tabW = r.tabWinner;
+
+      const tabAdminHtml = isKO && isDraw ? `
+        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--gold);align-self:center">🎯 TAB :</span>
+          <button onclick="setAdminTabWinner('${m.id}','home')" style="padding:4px 8px;border-radius:6px;border:2px solid ${tabW==='home'?'var(--gold)':'var(--border)'};background:${tabW==='home'?'rgba(245,200,66,0.15)':'var(--dark3)'};color:${tabW==='home'?'var(--gold)':'var(--muted)'};font-size:11px;cursor:pointer">
+            ${homeTeam.name}
+          </button>
+          <button onclick="setAdminTabWinner('${m.id}','away')" style="padding:4px 8px;border-radius:6px;border:2px solid ${tabW==='away'?'var(--gold)':'var(--border)'};background:${tabW==='away'?'rgba(245,200,66,0.15)':'var(--dark3)'};color:${tabW==='away'?'var(--gold)':'var(--muted)'};font-size:11px;cursor:pointer">
+            ${awayTeam.name}
+          </button>
+        </div>` : '';
+
+      matchRows += `<div id="rr-${m.id}">
+        <div class="result-row">
+          <div class="team-label right">${flagImg(homeTeam.flag, 20)} ${homeTeam.name}</div>
+          <input type="text" inputmode="numeric" class="score-input" style="width:44px" id="rh-${m.id}" placeholder="?" maxlength="1" value="${rHome}" oninput="filterScore(this);updateAdminTabButtons('${m.id}')">
+          <div class="result-row-center">
+            <span style="color:var(--muted);font-size:12px">—</span>
+            <span style="font-size:10px;color:var(--muted)">📅 ${m.date}</span>
+          </div>
+          <input type="text" inputmode="numeric" class="score-input" style="width:44px" id="ra-${m.id}" placeholder="?" maxlength="1" value="${rAway}" oninput="filterScore(this);updateAdminTabButtons('${m.id}')">
+          <div class="team-label">${awayTeam.name} ${flagImg(awayTeam.flag, 20)}</div>
+          <button class="btn-save-result ${r.home !== undefined ? 'saved' : ''}" onclick="saveResult('${m.id}')" title="Valider">
+            ${r.home !== undefined ? '✓' : '→'}
+          </button>
         </div>
-        <input type="text" inputmode="numeric" class="score-input" style="width:44px" id="ra-${m.id}" placeholder="?" maxlength="1" value="${r.away !== undefined ? r.away : ''}" oninput="filterScore(this)">
-        <div class="team-label">${awayTeam.name} ${flagImg(awayTeam.flag, 20)}</div>
-        <button class="btn-save-result ${r.home !== undefined ? 'saved' : ''}" onclick="saveResult('${m.id}')" title="Valider">
-          ${r.home !== undefined ? '✓' : '→'}
-        </button>
+        ${isKO ? `<div id="tab-admin-${m.id}">${tabAdminHtml}</div>` : ''}
       </div>`;
     });
 
@@ -2611,14 +2693,53 @@ function lockPhase(key) {
   });
 }
 
+function updateAdminTabButtons(matchId) {
+  const h = document.getElementById('rh-'+matchId)?.value;
+  const a = document.getElementById('ra-'+matchId)?.value;
+  const container = document.getElementById('tab-admin-'+matchId);
+  if(!container) return;
+  const m = ALL_MATCHES.find(x => x.id === matchId);
+  if(!m || m.roundKey === 'group') return;
+  const kt = state.knockoutTeams[matchId] || {};
+  const homeTeam = kt.home || m.home;
+  const awayTeam = kt.away || m.away;
+  const isDraw = h !== '' && a !== '' && parseInt(h) === parseInt(a);
+  const tabW = state.results[matchId]?.tabWinner;
+  if(isDraw) {
+    container.innerHTML = `
+      <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--gold);align-self:center">🎯 TAB :</span>
+        <button onclick="setAdminTabWinner('${matchId}','home')" style="padding:4px 8px;border-radius:6px;border:2px solid ${tabW==='home'?'var(--gold)':'var(--border)'};background:${tabW==='home'?'rgba(245,200,66,0.15)':'var(--dark3)'};color:${tabW==='home'?'var(--gold)':'var(--muted)'};font-size:11px;cursor:pointer">${homeTeam.name}</button>
+        <button onclick="setAdminTabWinner('${matchId}','away')" style="padding:4px 8px;border-radius:6px;border:2px solid ${tabW==='away'?'var(--gold)':'var(--border)'};background:${tabW==='away'?'rgba(245,200,66,0.15)':'var(--dark3)'};color:${tabW==='away'?'var(--gold)':'var(--muted)'};font-size:11px;cursor:pointer">${awayTeam.name}</button>
+      </div>`;
+  } else {
+    container.innerHTML = '';
+  }
+}
+
+function setAdminTabWinner(matchId, side) {
+  if(!state.results[matchId]) state.results[matchId] = {};
+  state.results[matchId].tabWinner = side;
+  dbSave().then(() => {
+    showToast(`🎯 Vainqueur TAB enregistré !`, 'success');
+    updateAdminTabButtons(matchId);
+    // Rafraîchir les boutons visuellement
+    const container = document.getElementById('tab-admin-'+matchId);
+    if(container) updateAdminTabButtons(matchId);
+  });
+}
+
 function saveResult(matchId) {
   const h = document.getElementById('rh-'+matchId).value;
   const a = document.getElementById('ra-'+matchId).value;
   if(h === '' || a === '') { showToast('Entrez les 2 scores', 'error'); return; }
+  const existing = state.results[matchId] || {};
   state.results[matchId] = { home: parseInt(h), away: parseInt(a) };
+  // Conserver tabWinner si déjà saisi
+  if(existing.tabWinner) state.results[matchId].tabWinner = existing.tabWinner;
   save('results', state.results);
   showToast('✅ Résultat enregistré !', 'success');
-
+  updateAdminTabButtons(matchId);
   const btn = document.querySelector(`#rr-${matchId} .btn-save-result`);
   if(btn) { btn.classList.add('saved'); btn.textContent = '✓'; }
   const row = document.getElementById('rr-'+matchId);
