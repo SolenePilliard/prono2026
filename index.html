@@ -948,9 +948,18 @@
       <div id="admin-container"></div>
 
       <div style="margin-top:32px">
+        <div class="admin-title">💾 Sauvegarde</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Exportez régulièrement vos données pour éviter toute perte.</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;margin-bottom:20px">
+          <button class="btn btn-gold btn-sm" onclick="exportData()">📤 Exporter sauvegarde (JSON)</button>
+          <button class="btn btn-outline btn-sm" onclick="restoreFromFile()">📥 Restaurer depuis fichier</button>
+        </div>
+        <input type="file" id="restore-file-input" accept=".json" style="display:none" onchange="doRestoreFromFile(event)">
+      </div>
+
+      <div style="margin-top:16px">
         <div class="admin-title">⚠️ Zone Danger</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap">
-          <button class="btn btn-danger btn-sm" onclick="exportData()">📤 Exporter les données (JSON)</button>
           <button class="btn btn-danger btn-sm" onclick="resetAllData()">🗑️ Remettre à zéro (TOUT)</button>
         </div>
       </div>
@@ -1217,26 +1226,45 @@ async function dbLoad() {
 
 async function dbSave() {
   if (!BIN_ID) return;
+
+  // 🛡️ PROTECTION ANTI-ÉCRASEMENT
+  // Refuser de sauvegarder si les joueurs sont vides alors que le bin en avait
+  const binSnapshot = localStorage.getItem('prono2026_backup_count');
+  if(binSnapshot && parseInt(binSnapshot) > 0 && state.players.length === 0) {
+    console.error('🛡️ Sauvegarde bloquée : state.players vide alors que le bin avait des joueurs !');
+    return;
+  }
+
   try {
+    const payload = {
+      players: state.players,
+      pronos: state.pronos,
+      results: state.results,
+      unlockedPhases: state.unlockedPhases,
+      knockoutTeams: state.knockoutTeams,
+      topScorerPronos: state.topScorerPronos,
+      topScorerResult: state.topScorerResult,
+      hotTeamPronos: state.hotTeamPronos,
+      hotTeamResult: state.hotTeamResult,
+    };
     const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'X-Master-Key': JSONBIN_API_KEY
       },
-      body: JSON.stringify({
-        players: state.players,
-        pronos: state.pronos,
-        results: state.results,
-        unlockedPhases: state.unlockedPhases,
-        knockoutTeams: state.knockoutTeams,
-        topScorerPronos: state.topScorerPronos,
-        topScorerResult: state.topScorerResult,
-        hotTeamPronos: state.hotTeamPronos,
-        hotTeamResult: state.hotTeamResult,
-      })
+      body: JSON.stringify(payload)
     });
-    if(!res.ok) console.error('dbSave error', res.status, await res.text());
+    if(!res.ok) {
+      console.error('dbSave error', res.status, await res.text());
+    } else {
+      // 💾 BACKUP LOCAL après chaque sauvegarde réussie
+      if(state.players.length > 0) {
+        localStorage.setItem('prono2026_backup', JSON.stringify(payload));
+        localStorage.setItem('prono2026_backup_count', state.players.length);
+        localStorage.setItem('prono2026_backup_date', new Date().toISOString());
+      }
+    }
   } catch(e) {
     console.error('dbSave exception', e);
   }
@@ -3083,48 +3111,20 @@ function showToast(msg, type='success') {
   setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
-function exportData() {
-  const data = {
-    players: state.players,
-    pronos: state.pronos,
-    results: state.results,
-    exportedAt: new Date().toISOString()
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'prono2026_backup.json';
-  a.click();
-  showToast('Export téléchargé !', 'success');
+function restoreFromFile() {
+  document.getElementById('restore-file-input').click();
 }
 
-function resetAllData() {
-  if(!confirm('⚠️ ATTENTION : ceci effacera TOUS les joueurs, pronos et résultats. Cette action est irréversible. Continuer ?')) return;
-  state.players = [];
-  state.pronos = {};
-  state.results = {};
-  dbSave().then(() => location.reload());
-}
-
-// ==========================================
-// INIT
-// ==========================================
-
-async function init() {
-  const data = await dbLoad();
-  state.players = data.players || [];
-  state.pronos = data.pronos || {};
-  state.results = data.results || {};
-  state.unlockedPhases = data.unlockedPhases || { group: true, r16: false, r8: false, qf: false, sf: false, third: false, final: false };
-  state.knockoutTeams = data.knockoutTeams || {};
-  state.topScorerPronos = data.topScorerPronos || {};
-  state.topScorerResult = data.topScorerResult || null;
-  state.hotTeamPronos = data.hotTeamPronos || {};
-  state.hotTeamResult = data.hotTeamResult || null;
-  refreshPlayerSelect();
-}
-
-init();
-</script>
-</body>
-</html>
+function doRestoreFromFile(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.players || !Array.isArray(data.players)) {
+        showToast('❌ Fichier invalide', 'error'); return;
+      }
+      if(!confirm(`Restaurer ${data.players.length} joueurs depuis ce fichier ? Cela écrasera les données actuelles.`)) return;
+      state.players = data.players;
+      state.pronos = data.pronos || {};
