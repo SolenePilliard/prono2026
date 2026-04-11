@@ -1680,10 +1680,11 @@ function renderPronos() {
             ? `<div class="prono-saved">✅ Enregistré</div>`
             : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`;
 
-        // Boutons TAB si score égal
+        // Boutons TAB si score égal — uniquement huitièmes et au-delà
+        const hasTAB = ['r8','qf','sf','third','final'].includes(m.roundKey);
         const hVal = p ? p.home : '';
         const aVal = p ? p.away : '';
-        const isDraw = hVal !== '' && aVal !== '' && parseInt(hVal) === parseInt(aVal);
+        const isDraw = hasTAB && hVal !== '' && aVal !== '' && parseInt(hVal) === parseInt(aVal);
         const tabWinner = p ? p.tabWinner : null;
         const tabHtml = isDraw && !isClosed ? `
           <div style="margin-top:6px;display:flex;gap:6px;justify-content:center">
@@ -2510,9 +2511,10 @@ function renderAdmin() {
       const homeTeam = kt.home || m.home;
       const awayTeam = kt.away || m.away;
       const isKO = m.roundKey !== 'group';
+      const hasTABAdmin = ['r8','qf','sf','third','final'].includes(m.roundKey);
       const rHome = r.home !== undefined ? r.home : '';
       const rAway = r.away !== undefined ? r.away : '';
-      const isDraw = rHome !== '' && rAway !== '' && parseInt(rHome) === parseInt(rAway);
+      const isDraw = hasTABAdmin && rHome !== '' && rAway !== '' && parseInt(rHome) === parseInt(rAway);
       const tabW = r.tabWinner;
 
       const tabAdminHtml = isKO && isDraw ? `
@@ -2779,7 +2781,7 @@ function updateAdminTabButtons(matchId) {
   const container = document.getElementById('tab-admin-'+matchId);
   if(!container) return;
   const m = ALL_MATCHES.find(x => x.id === matchId);
-  if(!m || m.roundKey === 'group') return;
+  if(!m || !['r8','qf','sf','third','final'].includes(m.roundKey)) return;
   const kt = state.knockoutTeams[matchId] || {};
   const homeTeam = kt.home || m.home;
   const awayTeam = kt.away || m.away;
