@@ -1954,29 +1954,46 @@ function calcPoints(prono, result, roundKey) {
   const coeff = ROUND_COEFFICIENTS[roundKey] || 1;
   const hasTAB = ['r8','qf','sf','third','final'].includes(roundKey);
 
-  const pH = parseInt(prono.home), pA = parseInt(prono.away);
-  const rH = parseInt(result.home), rA = parseInt(result.away);
+  const pH = parseInt(prono.home);
+  const pA = parseInt(prono.away);
+  const rH = parseInt(result.home);
+  const rA = parseInt(result.away);
 
-  // Déterminer le vainqueur réel
-  const realWinner = rH > rA ? 'home'
-    : rA > rH ? 'away'
-    : result.tabWinner || 'draw';
+  if(isNaN(pH) || isNaN(pA) || isNaN(rH) || isNaN(rA)) return 0;
 
-  // Déterminer le vainqueur pronostiqué
-  const pronoWinner = pH > pA ? 'home'
-    : pA > pH ? 'away'
-    : hasTAB && prono.tabWinner ? prono.tabWinner : 'draw';
+  const resultIsNul = rH === rA;
+  const pronoIsNul = pH === pA;
 
-  // Score exact
-  if(pH === rH && pA === rA) {
-    if(hasTAB && rH === rA && result.tabWinner) {
-      return prono.tabWinner === result.tabWinner ? 5 * coeff : 2 * coeff;
+  // ---- CAS SCORE NUL EN PHASE KO (TAB obligatoire) ----
+  if(hasTAB && resultIsNul) {
+    // Score exact + bon TAB = 5 pts
+    if(pH === rH && pA === rA && prono.tabWinner && prono.tabWinner === result.tabWinner) return 5 * coeff;
+    // Score exact + mauvais TAB = 0 pt
+    if(pH === rH && pA === rA) return 0;
+    // Score différent mais bon gagnant via TAB = 2 pts
+    if(pronoIsNul && prono.tabWinner && prono.tabWinner === result.tabWinner) return 2 * coeff;
+    // Prono victoire directe et résultat TAB = 2 pts si bon vainqueur
+    if(!pronoIsNul) {
+      const pronoWinner = pH > pA ? 'home' : 'away';
+      if(pronoWinner === result.tabWinner) return 2 * coeff;
     }
-    return 5 * coeff;
+    return 0;
   }
 
-  // Bon gagnant
-  if(pronoWinner !== 'draw' && pronoWinner === realWinner) return 2 * coeff;
+  // ---- CAS SCORE NON NUL (ou phase groupes/seizièmes) ----
+  const realWinner = rH > rA ? 'home' : 'away';
+
+  // Score exact
+  if(pH === rH && pA === rA) return 5 * coeff;
+
+  // Bon gagnant via score direct
+  if(!pronoIsNul) {
+    const pronoWinner = pH > pA ? 'home' : 'away';
+    if(pronoWinner === realWinner) return 2 * coeff;
+  }
+
+  // Bon gagnant via TAB (prono nul + bon TAB + résultat non nul)
+  if(hasTAB && pronoIsNul && prono.tabWinner && prono.tabWinner === realWinner) return 2 * coeff;
 
   return 0;
 }
