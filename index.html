@@ -2517,6 +2517,52 @@ function renderAdmin() {
 
   let html = '';
 
+  // ---- 0. RAPPELS DU JOUR ----
+  const todayMatches = ALL_MATCHES.filter(m => {
+    try {
+      const deadline = getDeadlineParis(m.deadline);
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      return deadline >= startOfToday && deadline <= endOfToday;
+    } catch(e) { return false; }
+  });
+
+  let remindersContent = '';
+  if(todayMatches.length === 0) {
+    remindersContent = `<div style="font-size:13px;color:var(--muted);text-align:center;padding:8px 0">Aucun match ne ferme aujourd'hui.</div>`;
+  } else {
+    let reminderText = `Rappels du ${new Date().toLocaleDateString('fr-FR')} — matchs qui ferment ce soir à 23h59\n\n`;
+    let hasAbsents = false;
+
+    todayMatches.forEach(m => {
+      const kt = state.knockoutTeams[m.id] || {};
+      const homeTeam = kt.home || m.home;
+      const awayTeam = kt.away || m.away;
+      const absents = state.players.filter(p => {
+        const prono = (state.pronos[p.id] || {})[m.id];
+        return !prono || prono.home === '' || prono.away === '';
+      });
+      if(absents.length === 0) return;
+      hasAbsents = true;
+      remindersContent += `<div style="background:var(--dark3);border-radius:10px;padding:10px 14px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">${getRoundIcon(m.roundKey)} ${homeTeam.name} vs ${awayTeam.name} <span style="font-size:11px;color:var(--muted);font-weight:400">· ${m.date}</span></div>
+        <div style="font-size:12px;color:var(--red)">❌ Sans prono : ${absents.map(p => p.prenom + ' ' + p.nom).join(', ')}</div>
+      </div>`;
+      reminderText += `${homeTeam.name} vs ${awayTeam.name}\n→ ${absents.map(p => p.prenom + ' ' + p.nom).join(', ')}\n\n`;
+    });
+
+    if(!hasAbsents) {
+      remindersContent = `<div style="font-size:13px;color:var(--green-light);text-align:center;padding:8px 0">✅ Tout le monde a pronostiqué les matchs du jour !</div>`;
+    } else {
+      remindersContent += `<button class="btn btn-outline btn-sm" onclick="copyReminders()" style="margin-top:6px">📋 Copier la liste</button>
+        <textarea id="reminder-text" style="display:none">${reminderText.trim()}</textarea>`;
+    }
+  }
+
+  const todayBadge = todayMatches.length > 0 ? `${todayMatches.length} match(s) ce soir` : "Aucun match aujourd'hui";
+  html += adminAccordion('admin-reminders', '📋', 'Rappels du jour', todayBadge, true, remindersContent);
+
   // ---- HELPER ACCORDÉON ADMIN ----
   function adminAccordion(id, icon, title, badge, defaultOpen, content) {
     return `
@@ -2698,6 +2744,20 @@ function renderAdmin() {
   html += adminAccordion('admin-hot', '🤬', 'Bonus — Les Chauds Bouillants', htResult ? `✅ ${htResult}` : `${htCount} pronos saisis`, false, hotContent);
 
   document.getElementById('admin-container').innerHTML = html;
+}
+
+function copyReminders() {
+  const ta = document.getElementById('reminder-text');
+  if(!ta) return;
+  navigator.clipboard.writeText(ta.value).then(() => {
+    showToast('📋 Liste copiée !', 'success');
+  }).catch(() => {
+    ta.style.display = 'block';
+    ta.select();
+    document.execCommand('copy');
+    ta.style.display = 'none';
+    showToast('📋 Liste copiée !', 'success');
+  });
 }
 
 function toggleAdminSection(id) {
