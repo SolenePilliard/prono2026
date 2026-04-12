@@ -2226,23 +2226,39 @@ function matchCard(m) {
   const zero = pronosForMatch.filter(x => x.pts === 0).length;
   const total = pronosForMatch.length;
   const uid = 'res-' + m.id;
+  const hasTAB = ['r8','qf','sf','third','final'].includes(m.roundKey);
+  const isNulResult = parseInt(r.home) === parseInt(r.away);
+  const tabWinnerTeam = hasTAB && isNulResult && r.tabWinner
+    ? (r.tabWinner === 'home' ? homeTeam : awayTeam)
+    : null;
+
+  const scoreBlock = tabWinnerTeam
+    ? '<span style="font-weight:700;font-size:13px' + (r.tabWinner==='home' ? ';color:var(--gold);text-decoration:underline' : '') + '">' + homeTeam.name + '</span>'
+      + '<span style="font-family:\'Bebas Neue\';font-size:20px;padding:3px 12px;background:var(--dark3);border-radius:8px">' + r.home + ' — ' + r.away + '</span>'
+      + '<span style="font-weight:700;font-size:13px' + (r.tabWinner==='away' ? ';color:var(--gold);text-decoration:underline' : '') + '">' + awayTeam.name + '</span>'
+      + '<span style="font-size:11px;background:rgba(245,200,66,0.15);border:1px solid var(--gold);color:var(--gold);padding:2px 7px;border-radius:6px;font-weight:600">🎯 TAB : ' + tabWinnerTeam.name + '</span>'
+    : '<span style="font-weight:700;font-size:13px">' + homeTeam.name + '</span>'
+      + '<span style="font-family:\'Bebas Neue\';font-size:20px;padding:3px 12px;background:var(--dark3);border-radius:8px">' + r.home + ' — ' + r.away + '</span>'
+      + '<span style="font-weight:700;font-size:13px">' + awayTeam.name + '</span>';
+
   const rows = pronosForMatch.sort((a,b) => b.pts - a.pts).map(({player, prono, pts}) => {
     const cls = pts >= 5*coeff ? 'pts-perfect' : pts > 0 ? 'pts-good' : 'pts-zero';
     const icon = pts >= 5*coeff ? '⭐' : pts > 0 ? '✅' : '❌';
+    const pronoTabLine = hasTAB && parseInt(prono.home) === parseInt(prono.away) && prono.tabWinner
+      ? ' · 🎯 ' + (prono.tabWinner === 'home' ? homeTeam.name : awayTeam.name)
+      : '';
     return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--dark3);padding:8px 12px;border-radius:10px;gap:8px">'
       + '<div style="display:flex;align-items:center;gap:8px;min-width:0">'
       + '<div class="player-avatar" style="width:28px;height:28px;font-size:11px;flex-shrink:0;background:linear-gradient(135deg,' + player.color + ',' + player.color + '88)">' + getInitials(player).toUpperCase() + '</div>'
       + '<div style="min-width:0"><div style="font-size:13px;font-weight:600">' + player.prenom + ' ' + player.nom + '</div>'
-      + '<div style="font-size:12px;color:var(--muted)">' + icon + ' ' + prono.home + ' — ' + prono.away + '</div></div></div>'
+      + '<div style="font-size:12px;color:var(--muted)">' + icon + ' ' + prono.home + ' — ' + prono.away + pronoTabLine + '</div></div></div>'
       + '<span class="points-badge ' + cls + '" style="flex-shrink:0">' + pts + ' pts</span></div>';
   }).join('');
   return '<div class="admin-section" style="margin-bottom:8px;padding:0;overflow:hidden">'
     + '<div onclick="toggleResult(\'' + uid + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;gap:12px;flex-wrap:wrap">'
     + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
     + '<span>' + flagImg(homeTeam.flag, 22) + '</span>'
-    + '<span style="font-weight:700;font-size:13px">' + homeTeam.name + '</span>'
-    + '<span style="font-family:\'Bebas Neue\';font-size:20px;padding:3px 12px;background:var(--dark3);border-radius:8px">' + r.home + ' — ' + r.away + '</span>'
-    + '<span style="font-weight:700;font-size:13px">' + awayTeam.name + '</span>'
+    + scoreBlock
     + '<span>' + flagImg(awayTeam.flag, 22) + '</span>'
     + (coeff > 1 ? '<span class="chip active">×' + coeff + '</span>' : '')
     + '</div>'
