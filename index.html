@@ -1952,30 +1952,29 @@ function getResult(score) {
 function calcPoints(prono, result, roundKey) {
   if(!prono || !result) return 0;
   const coeff = ROUND_COEFFICIENTS[roundKey] || 1;
-  const isKO = roundKey !== 'group' && roundKey !== 'r16';
+  const hasTAB = ['r8','qf','sf','third','final'].includes(roundKey);
+
+  // Déterminer le vainqueur réel (en tenant compte du TAB si nul)
+  const realWinner = result.home > result.away ? 'home'
+    : result.away > result.home ? 'away'
+    : result.tabWinner || 'draw'; // si nul sans TAB = draw
+
+  // Déterminer le vainqueur pronostiqué (en tenant compte du TAB si nul)
+  const pronoWinner = prono.home > prono.away ? 'home'
+    : prono.away > prono.home ? 'away'
+    : hasTAB && prono.tabWinner ? prono.tabWinner : 'draw';
 
   // Score exact
   if(prono.home === result.home && prono.away === result.away) {
-    // Si match nul avec TAB, vérifier aussi le vainqueur TAB
-    if(isKO && result.home === result.away) {
-      if(result.tabWinner && prono.tabWinner && prono.tabWinner === result.tabWinner) return 5 * coeff;
-      if(result.tabWinner && !prono.tabWinner) return 2 * coeff; // score exact mais pas de TAB coché
-      if(!result.tabWinner) return 5 * coeff;
+    // Score nul exact en KO : vérifier aussi le TAB
+    if(hasTAB && result.home === result.away && result.tabWinner) {
+      return prono.tabWinner === result.tabWinner ? 5 * coeff : 2 * coeff;
     }
     return 5 * coeff;
   }
 
-  // Bon gagnant/nul
-  const pronoResult = getResult(prono);
-  const realResult = getResult(result);
-  if(pronoResult === realResult) {
-    // Si nul avec TAB en KO, vérifier le vainqueur TAB
-    if(isKO && realResult === 'draw' && result.tabWinner) {
-      if(prono.tabWinner && prono.tabWinner === result.tabWinner) return 2 * coeff;
-      return 0; // nul pronostiqué mais mauvais gagnant TAB
-    }
-    return 2 * coeff;
-  }
+  // Bon gagnant (en utilisant le vainqueur TAB si applicable)
+  if(pronoWinner !== 'draw' && pronoWinner === realWinner) return 2 * coeff;
 
   return 0;
 }
