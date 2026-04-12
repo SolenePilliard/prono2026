@@ -1954,26 +1954,28 @@ function calcPoints(prono, result, roundKey) {
   const coeff = ROUND_COEFFICIENTS[roundKey] || 1;
   const hasTAB = ['r8','qf','sf','third','final'].includes(roundKey);
 
-  // Déterminer le vainqueur réel (en tenant compte du TAB si nul)
-  const realWinner = result.home > result.away ? 'home'
-    : result.away > result.home ? 'away'
-    : result.tabWinner || 'draw'; // si nul sans TAB = draw
+  const pH = parseInt(prono.home), pA = parseInt(prono.away);
+  const rH = parseInt(result.home), rA = parseInt(result.away);
 
-  // Déterminer le vainqueur pronostiqué (en tenant compte du TAB si nul)
-  const pronoWinner = prono.home > prono.away ? 'home'
-    : prono.away > prono.home ? 'away'
+  // Déterminer le vainqueur réel
+  const realWinner = rH > rA ? 'home'
+    : rA > rH ? 'away'
+    : result.tabWinner || 'draw';
+
+  // Déterminer le vainqueur pronostiqué
+  const pronoWinner = pH > pA ? 'home'
+    : pA > pH ? 'away'
     : hasTAB && prono.tabWinner ? prono.tabWinner : 'draw';
 
   // Score exact
-  if(prono.home === result.home && prono.away === result.away) {
-    // Score nul exact en KO : vérifier aussi le TAB
-    if(hasTAB && result.home === result.away && result.tabWinner) {
+  if(pH === rH && pA === rA) {
+    if(hasTAB && rH === rA && result.tabWinner) {
       return prono.tabWinner === result.tabWinner ? 5 * coeff : 2 * coeff;
     }
     return 5 * coeff;
   }
 
-  // Bon gagnant (en utilisant le vainqueur TAB si applicable)
+  // Bon gagnant
   if(pronoWinner !== 'draw' && pronoWinner === realWinner) return 2 * coeff;
 
   return 0;
