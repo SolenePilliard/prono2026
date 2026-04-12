@@ -2006,9 +2006,10 @@ function computePlayerScore(playerId) {
     const p = pronos[m.id];
     const r = state.results[m.id];
     if(!p || !r) return;
+    const coeff = ROUND_COEFFICIENTS[m.roundKey] || 1;
     const pts = calcPoints(p, r, m.roundKey);
-    if(pts >= 5) perfect++;
-    else if(pts >= 2) good++;
+    if(pts === 5 * coeff) perfect++;
+    else if(pts === 2 * coeff) good++;
     total += pts;
   });
 
