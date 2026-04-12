@@ -1904,12 +1904,18 @@ function saveAllPronos() {
   const uid = state.currentUser.id;
   let saved = 0;
   ALL_MATCHES.forEach(m => {
-    if(isMatchClosed(m)) return; // ne pas écraser les pronos fermés
+    if(isMatchClosed(m)) return;
     const h = document.getElementById('ph-'+m.id);
     const a = document.getElementById('pa-'+m.id);
     if(h && a && h.value !== '' && a.value !== '') {
       if(!state.pronos[uid]) state.pronos[uid] = {};
-      state.pronos[uid][m.id] = { home: parseInt(h.value), away: parseInt(a.value) };
+      const existing = state.pronos[uid][m.id] || {};
+      const newProno = { home: parseInt(h.value), away: parseInt(a.value) };
+      // Conserver le tabWinner si le score est toujours nul
+      if(newProno.home === newProno.away && existing.tabWinner) {
+        newProno.tabWinner = existing.tabWinner;
+      }
+      state.pronos[uid][m.id] = newProno;
       saved++;
     }
   });
