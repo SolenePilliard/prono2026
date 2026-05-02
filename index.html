@@ -2551,6 +2551,13 @@ function renderAdmin() {
       const kt = state.knockoutTeams[m.id] || {};
       const homeTeam = kt.home || m.home;
       const awayTeam = kt.away || m.away;
+      // Si les équipes ne sont pas encore connues (placeholders type "1A", "3E")
+      const homeName = homeTeam.name.match(/^[0-9]/) ? null : homeTeam.name;
+      const awayName = awayTeam.name.match(/^[0-9]/) ? null : awayTeam.name;
+      const matchLabel = homeName && awayName
+        ? `${homeName} vs ${awayName}`
+        : `${m.round} (équipes à confirmer)`;
+
       const absents = state.players.filter(p => {
         const prono = (state.pronos[p.id] || {})[m.id];
         return !prono || prono.home === '' || prono.away === '';
@@ -2558,10 +2565,10 @@ function renderAdmin() {
       if(absents.length === 0) return;
       hasAbsents = true;
       remindersContent += `<div style="background:var(--dark3);border-radius:10px;padding:10px 14px;margin-bottom:8px">
-        <div style="font-size:13px;font-weight:600;margin-bottom:4px">${getRoundIcon(m.roundKey)} ${homeTeam.name} vs ${awayTeam.name} <span style="font-size:11px;color:var(--muted);font-weight:400">· ${m.date}</span></div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">${getRoundIcon(m.roundKey)} ${matchLabel} <span style="font-size:11px;color:var(--muted);font-weight:400">· ${m.date}</span></div>
         <div style="font-size:12px;color:var(--red)">❌ Sans prono : ${absents.map(p => p.prenom + ' ' + p.nom).join(', ')}</div>
       </div>`;
-      reminderText += `${homeTeam.name} vs ${awayTeam.name}\n→ ${absents.map(p => p.prenom + ' ' + p.nom).join(', ')}\n\n`;
+      reminderText += `${matchLabel}\n→ ${absents.map(p => p.prenom + ' ' + p.nom).join(', ')}\n\n`;
     });
 
     if(!hasAbsents) {
