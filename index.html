@@ -941,10 +941,6 @@
         <div id="players-admin-list" style="display:none;background:var(--card);padding:16px 18px"></div>
       </div>
 
-      <div class="info-box">
-        🔑 Saisissez les vrais scores ci-dessous. Les points sont recalculés automatiquement pour tous les joueurs.
-      </div>
-
       <div id="admin-container"></div>
 
       <div style="margin-top:32px">
@@ -2601,7 +2597,7 @@ function renderAdmin() {
   }
 
   const todayBadge = todayMatches.length > 0 ? `${todayMatches.length} match(s) ce soir` : "Aucun match aujourd'hui";
-  html += adminAccordion('admin-reminders', '📋', 'Rappels du jour', todayBadge, true, remindersContent);
+  html += adminAccordion('admin-reminders', '📋', 'Rappels du jour', todayBadge, false, remindersContent);
 
   // ---- HELPER ACCORDÉON ADMIN ----
   function adminAccordion(id, icon, title, badge, defaultOpen, content) {
@@ -2725,7 +2721,7 @@ function renderAdmin() {
   });
 
   const totalSaved = Object.keys(state.results).length;
-  html += adminAccordion('admin-results', '⚽', 'Saisie des résultats', `${totalSaved} résultats enregistrés`, true, resultsHtml);
+  html += adminAccordion('admin-results', '⚽', 'Saisie des résultats', `${totalSaved} résultats enregistrés`, false, resultsHtml);
 
   // ---- 3. BONUS MEILLEUR BUTEUR ----
   const tsResult = state.topScorerResult;
