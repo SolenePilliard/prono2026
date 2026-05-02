@@ -2437,11 +2437,7 @@ function renderPlayersAdmin() {
     return;
   }
 
-  let html = `<div style="margin-bottom:12px">
-    <button class="btn btn-outline btn-sm" onclick="normalizePlayerNames()">✏️ Normaliser les noms existants</button>
-    <span style="font-size:11px;color:var(--muted);margin-left:8px">Prénom avec majuscule initiale · Nom en majuscules</span>
-  </div>`;
-  html += '<div style="display:flex;flex-direction:column;gap:8px">';
+  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
   state.players.forEach(p => {
     const pronosCount = Object.keys(state.pronos[p.id] || {}).length;
     html += `
