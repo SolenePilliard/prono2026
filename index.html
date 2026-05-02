@@ -1158,7 +1158,7 @@ function getDeadlineParis(matchDeadline) {
   // On ferme à 23:59:59 heure Paris la VEILLE
   const [y, m, d] = matchDeadline.split('-').map(Number);
 
-  // Calculer la veille proprement (gère les changements de mois/année)
+  // Calculer la veille proprement
   const matchDate = new Date(y, m-1, d);
   const veille = new Date(matchDate);
   veille.setDate(veille.getDate() - 1);
@@ -1167,19 +1167,28 @@ function getDeadlineParis(matchDeadline) {
   const mv = String(veille.getMonth()+1).padStart(2,'0');
   const dv = String(veille.getDate()).padStart(2,'0');
 
-  // Construire "veille à 23:59:59 UTC" puis ajuster avec l'offset Paris
-  const target = `${yv}-${mv}-${dv}T23:59:59`;
-  const utcDate = new Date(target + 'Z');
-  const parisOffset = getParisOffsetMinutes(utcDate);
-  return new Date(utcDate.getTime() - parisOffset * 60000);
+  // Créer la date "veille 23:59:59" dans le fuseau Europe/Paris
+  // en utilisant Intl pour trouver le bon timestamp UTC
+  const localStr = `${yv}-${mv}-${dv}T23:59:59`;
+  // On utilise une astuce : on demande à JS de parser comme si c'était Paris
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Paris',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false
+  }).formatToParts(new Date(localStr + 'Z'));
+
+  // Méthode fiable : créer la date Paris via offset dynamique
+  const testDate = new Date(`${yv}-${mv}-${dv}T23:59:59Z`);
+  const parisStr = testDate.toLocaleString('en-US', {timeZone:'Europe/Paris', hour12:false});
+  const utcStr = testDate.toLocaleString('en-US', {timeZone:'UTC', hour12:false});
+  const offsetMs = (new Date(parisStr) - new Date(utcStr));
+  return new Date(testDate.getTime() - offsetMs);
 }
 
 function getParisOffsetMinutes(date) {
-  // Retourne l'offset UTC→Paris en minutes (ex: CEST = +120, CET = +60)
   const utcStr = date.toLocaleString('en-US', { timeZone: 'UTC' });
   const parisStr = date.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
-  const diff = (new Date(parisStr) - new Date(utcStr)) / 60000;
-  return diff;
+  return (new Date(parisStr) - new Date(utcStr)) / 60000;
 }
 
 function isMatchClosed(match) {
@@ -1193,7 +1202,10 @@ function isMatchClosed(match) {
 function getDeadlineLabel(match) {
   if(!match.deadline) return '';
   const [y, m, d] = match.deadline.split('-').map(Number);
-  const veille = new Date(y, m-1, d-1);
+  // Calculer la veille proprement (gère les changements de mois)
+  const matchDate = new Date(y, m-1, d);
+  const veille = new Date(matchDate);
+  veille.setDate(veille.getDate() - 1);
   return veille.toLocaleDateString('fr-FR', { day:'numeric', month:'short' }) + ' à 23h59';
 }
 
