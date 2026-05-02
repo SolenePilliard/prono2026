@@ -3345,7 +3345,29 @@ function resetAllData() {
   state.players = [];
   state.pronos = {};
   state.results = {};
-  dbSave().then(() => location.reload());
+  state.knockoutTeams = {};
+  state.topScorerPronos = {};
+  state.topScorerResult = null;
+  state.hotTeamPronos = {};
+  state.hotTeamResult = null;
+  // Vider aussi le backup local pour ne pas déclencher la restauration
+  localStorage.removeItem('prono2026_backup');
+  localStorage.removeItem('prono2026_backup_count');
+  localStorage.removeItem('prono2026_backup_date');
+  // Forcer la sauvegarde en ignorant la protection anti-écrasement
+  fetch(`${JSONBIN_BASE}/${BIN_ID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
+    body: JSON.stringify({
+      players: [], pronos: {}, results: {},
+      unlockedPhases: { group: true, r16: false, r8: false, qf: false, sf: false, third: false, final: false },
+      knockoutTeams: {}, topScorerPronos: {}, topScorerResult: null,
+      hotTeamPronos: {}, hotTeamResult: null
+    })
+  }).then(() => {
+    showToast('✅ Données effacées !', 'success');
+    setTimeout(() => location.reload(), 800);
+  });
 }
 
 // ==========================================
