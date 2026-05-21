@@ -3206,51 +3206,64 @@ function saveHotTeam() {
 
 // Joueurs clés par équipe (attaquants & milieux offensifs)
 const SQUAD_PLAYERS = {
+  // Groupe A
   'Mexique':        ['Hirving Lozano','Raúl Jiménez','Henry Martín','Roberto Alvarado','Santiago Giménez','Alexis Vega'],
   'Afrique du Sud': ['Percy Tau','Lyle Foster','Evidence Makgopa','Themba Zwane','Bongokuhle Hlongwane'],
-  'Corée du Sud':   ['Son Heung-min','Hwang Hee-chan','Cho Gue-sung','Lee Jae-sung','Oh Hyeon-gyu'],
+  'Corée du Sud':   ['Son Heung-Min','Hwang Hee-Chan','Cho Gue-Sung','Lee Jae-Sung','Oh Hyeon-Gyu','Lee Kang-In','Yang Hyun-Jun','Bae Jun-Ho'],
+  'République Tchèque': ['Patrik Schick','Tomáš Souček','Adam Hložek','Lukáš Provod','Jan Kuchta','Vladimír Coufal','Pavel Šulc','Lukáš Červ'],
+  // Groupe B
+  'Bosnie-Herzégovine': ['Edin Džeko','Ermedin Demirović','Sead Kolašinac','Amar Dedic','Benjamin Tahirovic','Esmir Bajraktarevic','Haris Tabakovic','Armin Gigovic'],
   'Canada':         ['Alphonso Davies','Jonathan David','Cyle Larin','Tajon Buchanan','Ike Ugbo','Junior Hoilett'],
-  'Suisse':         ['Breel Embolo','Xherdan Shaqiri','Granit Xhaka','Remo Freuler','Dan Ndoye','Zeki Amdouni'],
   'Qatar':          ['Akram Afif','Almoez Ali','Hassan Al-Haydos','Ismail Mohamad','Karim Boudiaf'],
-  'Brésil':         ['Vinicius Jr','Rodrygo','Raphinha','Gabriel Martinelli','Endrick','Richarlison','Neymar'],
+  'Suisse':         ['Breel Embolo','Dan Ndoye','Zeki Amdouni','Granit Xhaka','Remo Freuler','Ardon Jashari','Ruben Vargas','Noah Okafor'],
+  // Groupe C
+  'Brésil':         ['Vinicius Junior','Raphinha','Gabriel Martinelli','Endrick','Neymar','Matheus Cunha','Lucas Paqueta','Bruno Guimaraes'],
   'Maroc':          ['Hakim Ziyech','Youssef En-Nesyri','Sofiane Boufal','Achraf Hakimi','Azzedine Ounahi'],
   'Haïti':          ['Frantzdy Pierrot','Derrick Etienne Jr','Duckens Nazon','Steeven Saba'],
-  'Écosse':         ['Andy Robertson','Scott McTominay','Che Adams','Ryan Christie','Kenny McLean','Billy Gilmour'],
+  'Écosse':         ['Andy Robertson','Scott McTominay','Che Adams','Ryan Christie','Kenny McLean','Billy Gilmour','John McGinn','Lawrence Shankland'],
+  // Groupe D
   'USA':            ['Christian Pulisic','Timothy Weah','Folarin Balogun','Ricardo Pepi','Gio Reyna','Josh Sargent'],
   'Paraguay':       ['Miguel Almirón','Ángel Romero','Antonio Sanabria','Iván Zaracho','Julio Enciso'],
   'Australie':      ['Mathew Leckie','Mitchell Duke','Martin Boyle','Jackson Irvine','Brandon Borrello'],
-  'Allemagne':      ['Florian Wirtz','Kai Havertz','Leroy Sané','Thomas Müller','Jamal Musiala','Serge Gnabry'],
-  'Curaçao':        ['Cuco Martina','Leandro Bacuna','Elson Hooi','Jarchinio Antonia'],
+  'Turquie':        ['Hakan Çalhanoğlu','Arda Güler','Kerem Aktürkoğlu','Burak Yılmaz','Cengiz Ünder','Yusuf Yazıcı'],
+  // Groupe E
+  'Allemagne':      ['Florian Wirtz','Jamal Musiala','Kai Havertz','Leroy Sané','Thomas Müller','Manuel Neuer','Serge Gnabry','Joshua Kimmich'],
+  'Curaçao':        ['Tahith Chong','Leandro Bacuna','Jurgen Locadia','Sontje Hansen','Armando Obispo','Juninho Bacuna'],
   "Côte d'Ivoire":  ['Sébastien Haller','Nicolas Pépé','Franck Kessié','Jean-Philippe Krasso','Simon Adingra'],
   'Équateur':       ['Enner Valencia','Moisés Caicedo','Gonzalo Plata','Michael Estrada','Jeremy Sarmiento'],
-  'Pays-Bas':       ['Memphis Depay','Cody Gakpo','Xavi Simons','Wout Weghorst','Donyell Malen','Tijjani Reijnders'],
+  // Groupe F
   'Japon':          ['Takumi Minamino','Daichi Kamada','Ritsu Doan','Kaoru Mitoma','Ayase Ueda','Junya Ito'],
-  'Tunisie':        ['Youssef Msakni','Seifeddine Jaziri','Hannibal Mejbri','Wahbi Khazri','Nizar Issaoui'],
-  'Belgique':       ['Romelu Lukaku','Kevin De Bruyne','Dries Mertens','Lois Openda','Jeremy Doku','Leandro Trossard'],
+  'Pays-Bas':       ['Memphis Depay','Cody Gakpo','Xavi Simons','Wout Weghorst','Donyell Malen','Tijjani Reijnders'],
+  'Suède':          ['Alexander Isak','Dejan Kulusevski','Viktor Gyökeres','Emil Forsberg','Jesper Karlsson'],
+  'Tunisie':        ['Youssef Msakni','Hannibal Mejbri','Wahbi Khazri','Seifeddine Jaziri','Nizar Issaoui'],
+  // Groupe G
+  'Belgique':       ['Romelu Lukaku','Kevin De Bruyne','Lois Openda','Jeremy Doku','Leandro Trossard','Dries Mertens'],
   'Égypte':         ['Mohamed Salah','Omar Marmoush','Mostafa Mohamed','Trezeguet','Ahmed Sayed Zizo'],
   'Iran':           ['Mehdi Taremi','Sardar Azmoun','Ali Gholizadeh','Alireza Jahanbakhsh','Karim Ansarifard'],
   'Nouvelle-Zélande':['Chris Wood','Liberato Cacace','Liam Millar','Matthew Garbett','Clayton Lewis'],
+  // Groupe H
   'Espagne':        ['Álvaro Morata','Ferran Torres','Pedri','Gavi','Lamine Yamal','Nico Williams','Mikel Oyarzabal'],
   'Cabo Verde':     ['Garry Rodrigues','Ryan Mendes','Julio Tavares','Willy Semedo','Stopira'],
   'Arabie Saoudite':['Salem Al-Dawsari','Firas Al-Buraikan','Mohammed Al-Owais','Sami Al-Najei','Abdullah Al-Hamdan'],
-  'Uruguay':        ['Darwin Núñez','Luis Suárez','Federico Valverde','Rodrigo Bentancur','Facundo Torres','Maxi Gómez'],
-  'France':         ['Kylian Mbappé','Antoine Griezmann','Olivier Giroud','Marcus Thuram','Ousmane Dembélé','Randal Kolo Muani'],
-  'Sénégal':        ['Sadio Mané','Ismaïla Sarr','Boulaye Dia','Nicolas Jackson','Habib Diallo','Iliman Ndiaye'],
+  'Uruguay':        ['Darwin Núñez','Federico Valverde','Rodrigo Bentancur','Facundo Torres','Maxi Gómez','Luis Suárez'],
+  // Groupe I
+  'France':         ['Kylian Mbappé','Antoine Griezmann','Marcus Thuram','Ousmane Dembélé','Randal Kolo Muani','Adrien Rabiot','Aurélien Tchouaméni'],
+  'Irak':           ['Mohanad Ali','Amjad Attwan','Ali Faez','Aymen Hussein','Bashar Resan'],
   'Norvège':        ['Erling Haaland','Martin Ødegaard','Alexander Sørloth','Jørgen Strand Larsen','Mohammed Elyounoussi'],
-  'Argentine':      ['Lionel Messi','Lautaro Martínez','Julián Álvarez','Ángel Di María','Paulo Dybala','Alejandro Garnacho'],
-  'Algérie':        ['Riyad Mahrez','Islam Slimani','Youcef Atal','Baghdad Bounedjah','Andy Delort'],
-  'Autriche':       ['Marko Arnautovic','David Alaba','Marcel Sabitzer','Christoph Baumgartner','Michael Gregoritsch'],
+  'Sénégal':        ['Sadio Mané','Ismaïla Sarr','Boulaye Dia','Nicolas Jackson','Habib Diallo','Iliman Ndiaye'],
+  // Groupe J
+  'Argentine':      ['Lionel Messi','Lautaro Martínez','Julián Álvarez','Alejandro Garnacho','Paulo Dybala','Rodrigo De Paul'],
+  'Algérie':        ['Riyad Mahrez','Islam Slimani','Youcef Atal','Baghdad Bounedjah','Ismaël Bennacer'],
+  'Autriche':       ['Marko Arnautovic','Marcel Sabitzer','Christoph Baumgartner','Michael Gregoritsch','Florian Grillitsch'],
   'Jordanie':       ['Musa Al-Taamari','Hamza Al-Dardour','Ahmad Hayel','Yazan Al-Naimat'],
-  'Portugal':       ['Cristiano Ronaldo','Bruno Fernandes','Bernardo Silva','Rafael Leão','Gonçalo Ramos','Diogo Jota'],
-  'Colombie':       ['Luis Díaz','James Rodríguez','Falcao','Cucho Hernández','Rafael Santos Borré','Jhon Durán'],
+  // Groupe K
+  'Portugal':       ['Cristiano Ronaldo','Bruno Fernandes','Bernardo Silva','Rafael Leão','Gonçalo Ramos','Diogo Jota','Vitinha'],
+  'Colombie':       ['Luis Díaz','James Rodríguez','Cucho Hernández','Rafael Santos Borré','Jhon Durán'],
   'Ouzbékistan':    ['Eldor Shomurodov','Jasur Yaxshiboyev','Locongolo Omonov','Otabek Shukurov'],
-  'République Tchèque': ['Patrik Schick','Tomáš Souček','Vladimír Coufal','Lukáš Provod','Adam Hložek','Jan Kuchta'],
-  'Bosnie-Herzégovine': ['Edin Džeko','Sead Kolašinac','Miralem Pjanić','Ermedin Demirović','Amer Gojak'],
-  'Turquie':    ['Hakan Çalhanoğlu','Arda Güler','Kerem Aktürkoğlu','Burak Yılmaz','Cengiz Ünder','Yusuf Yazıcı'],
-  'Suède':      ['Zlatan Ibrahimović','Alexander Isak','Dejan Kulusevski','Viktor Gyökeres','Emil Forsberg','Jesper Karlsson'],
-  'Irak':       ['Mohanad Ali','Amjad Attwan','Ali Faez','Aymen Hussein','Bashar Resan'],
-  'RD Congo':   ['Cédric Bakambu','Yannick Bolasie','Théo Bongonda','Chancel Mbemba','Neeskens Kebano'],
-  'Croatie':        ['Luka Modrić','Ivan Perišić','Andrej Kramarić','Bruno Petković','Marko Livaja'],
+  'RD Congo':       ['Cédric Bakambu','Yannick Bolasie','Théo Bongonda','Chancel Mbemba','Neeskens Kebano'],
+  // Groupe L
+  'Angleterre':     ['Harry Kane','Bukayo Saka','Phil Foden','Jude Bellingham','Ollie Watkins','Marcus Rashford'],
+  'Croatie':        ['Luka Modrić','Andrej Kramarić','Bruno Petković','Marko Livaja','Ivan Perišić'],
   'Ghana':          ['Jordan Ayew','André Ayew','Inaki Williams','Antoine Semenyo','Mohammed Kudus'],
   'Panama':         ['Rolando Blackburn','Gabriel Torres','Cecilio Waterman','Aníbal Godoy','Adalberto Carrasquilla'],
 };
