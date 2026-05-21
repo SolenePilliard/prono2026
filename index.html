@@ -1053,18 +1053,18 @@ function generateGroupMatches() {
   let id = 1;
   // Dates de test (mars 2026) — à remettre en juin pour la vraie CdM
   const matchDates = {
-    A: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    B: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    C: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    D: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    E: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    F: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    G: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    H: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    I: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    J: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    K: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
-    L: ['2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03','2026-05-03'],
+    A: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    B: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    C: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    D: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    E: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    F: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    G: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    H: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    I: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    J: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    K: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
+    L: ['2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23','2026-05-23'],
   };
   const displayDates = {
     A: ['23 mai','23 mai','23 mai','23 mai','23 mai','23 mai'],
@@ -1087,7 +1087,7 @@ function generateGroupMatches() {
     let di = 0;
     for(let i=0;i<teams.length;i++) {
       for(let j=i+1;j<teams.length;j++) {
-        const matchDay = md[di] || '2026-05-03';
+        const matchDay = md[di] || '2026-05-23';
         matches.push({
           id: 'g'+id,
           round: 'Groupe '+grp,
@@ -3010,13 +3010,13 @@ function saveResult(matchId) {
 // PRONO BONUS — MEILLEUR BUTEUR
 // ==========================================
 
-const TOP_SCORER_DEADLINE = '2026-05-03';
+const TOP_SCORER_DEADLINE = '2026-06-10';
 const TOP_SCORER_POINTS = 50;
-const HOT_TEAM_DEADLINE = '2026-05-03';
+const HOT_TEAM_DEADLINE = '2026-06-10';
 const HOT_TEAM_POINTS = 50;
 
 function isHotTeamClosed() {
-  try { return new Date() > getDeadlineParis(HOT_TEAM_DEADLINE); } catch(e) { return false; }
+  return isBonusClosed(HOT_TEAM_DEADLINE);
 }
 
 function renderHotTeamBonus() {
@@ -3140,11 +3140,21 @@ const SQUAD_PLAYERS = {
   'Panama':         ['Rolando Blackburn','Gabriel Torres','Cecilio Waterman','Aníbal Godoy','Adalberto Carrasquilla'],
 };
 
-function isTopScorerClosed() {
+function isBonusClosed(deadline) {
   try {
-    const deadline = getDeadlineParis(TOP_SCORER_DEADLINE);
-    return new Date() > deadline;
+    // Pour les bonus, on ferme directement à 23h59 à la date indiquée (pas la veille)
+    const [y, m, d] = deadline.split('-').map(Number);
+    const testDate = new Date(`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T23:59:59Z`);
+    const parisStr = testDate.toLocaleString('en-US', {timeZone:'Europe/Paris', hour12:false});
+    const utcStr = testDate.toLocaleString('en-US', {timeZone:'UTC', hour12:false});
+    const offsetMs = (new Date(parisStr) - new Date(utcStr));
+    const deadlineDate = new Date(testDate.getTime() - offsetMs);
+    return new Date() > deadlineDate;
   } catch(e) { return false; }
+}
+
+function isTopScorerClosed() {
+  return isBonusClosed(TOP_SCORER_DEADLINE);
 }
 
 const TOP_STARS = [
