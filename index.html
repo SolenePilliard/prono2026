@@ -1256,6 +1256,8 @@ async function dbSave() {
       topScorerResult: state.topScorerResult,
       hotTeamPronos: state.hotTeamPronos,
       hotTeamResult: state.hotTeamResult,
+      winnerPronos: state.winnerPronos,
+      winnerResult: state.winnerResult,
       previousRanking: state.previousRanking,
     };
     const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}`, {
@@ -1302,6 +1304,8 @@ let state = {
   topScorerResult: null, // {team, player} saisi par admin
   hotTeamPronos: {}, // {playerId: team}
   hotTeamResult: null, // team saisi par admin
+  winnerPronos: {}, // {playerId: team}
+  winnerResult: null, // team saisi par admin
   previousRanking: {}, // {playerId: rank} snapshot avant dernière mise à jour
 };
 
@@ -1531,7 +1535,7 @@ function renderPronos() {
     return `${dates[0]} – ${dates[dates.length-1]}`;
   }
 
-  let html = renderTopScorerBonus() + renderHotTeamBonus();
+  let html = renderTopScorerBonus() + renderHotTeamBonus() + renderWinnerBonus();
 
   // ---- MEGA ACCORDÉON PHASE DE GROUPES ----
   const groupMatches = groupRounds.flatMap(([,ms]) => ms);
@@ -2043,6 +2047,13 @@ function computePlayerScore(playerId) {
   const htResult = state.hotTeamResult;
   if(htProno && htResult && htProno === htResult) {
     total += HOT_TEAM_POINTS;
+  }
+
+  // Bonus vainqueur
+  const wProno = state.winnerPronos[playerId];
+  const wResult = state.winnerResult;
+  if(wProno && wResult && wProno === wResult) {
+    total += WINNER_POINTS;
   }
 
   return { total, perfect, good };
@@ -2777,6 +2788,27 @@ function renderAdmin() {
 
   html += adminAccordion('admin-hot', '🤬', 'Bonus — Les Chauds Bouillants', htResult ? `✅ ${htResult}` : `${htCount} pronos saisis`, false, hotContent);
 
+  // ---- 5. BONUS VAINQUEUR ----
+  const wResult = state.winnerResult;
+  const wCount = Object.keys(state.winnerPronos).length;
+  const wTeamOpts = COUNTRIES.sort((a,b)=>a.name.localeCompare(b.name,'fr'))
+    .map(c => `<option value="${c.name}" ${wResult===c.name?'selected':''}>${c.name}</option>`).join('');
+
+  const winnerContent = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${wCount} participant(s) ont saisi ce prono. Saisissez le pays vainqueur en fin de tournoi pour attribuer les ${WINNER_POINTS} points.</div>
+    ${wResult ? `<div style="background:rgba(37,163,85,0.1);border:1px solid var(--green-light);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--green-light)">✅ Résultat saisi : <strong>${wResult}</strong></div>` : ''}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:200px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Pays vainqueur</label>
+        <select id="admin-winner-team" style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+          <option value="">— Choisir une équipe —</option>${wTeamOpts}
+        </select>
+      </div>
+      <button class="btn btn-gold" onclick="saveAdminWinner()" style="height:38px;padding:0 16px;background:#25A355;border-color:#25A355">Valider →</button>
+    </div>`;
+
+  html += adminAccordion('admin-winner', '🏆', 'Bonus — Pays vainqueur', wResult ? `✅ ${wResult}` : `${wCount} pronos saisis`, false, winnerContent);
+
   document.getElementById('admin-container').innerHTML = html;
 }
 
@@ -2898,6 +2930,13 @@ function saveAdminTopScorer() {
   dbSave().then(() => showToast(`🥇 Meilleur buteur enregistré : ${player} (${team})`, 'success'));
 }
 
+function saveAdminWinner() {
+  const team = document.getElementById('admin-winner-team')?.value;
+  if(!team) { showToast('Choisissez une équipe', 'error'); return; }
+  state.winnerResult = team;
+  dbSave().then(() => showToast(`🏆 Pays vainqueur enregistré : ${team}`, 'success'));
+}
+
 function saveAdminHotTeam() {
   const team = document.getElementById('admin-ht-team')?.value;
   if(!team) { showToast('Choisissez une équipe', 'error'); return; }
@@ -3014,6 +3053,82 @@ const TOP_SCORER_DEADLINE = '2026-06-10';
 const TOP_SCORER_POINTS = 50;
 const HOT_TEAM_DEADLINE = '2026-06-10';
 const HOT_TEAM_POINTS = 50;
+const WINNER_DEADLINE = '2026-06-10';
+const WINNER_POINTS = 50;
+
+function isWinnerClosed() {
+  return isBonusClosed(WINNER_DEADLINE);
+}
+
+function renderWinnerBonus() {
+  const uid = state.currentUser.id;
+  const existing = state.winnerPronos[uid];
+  const closed = isWinnerClosed();
+  const result = state.winnerResult;
+  const disabledAttr = (closed || result) ? 'disabled' : '';
+
+  let pointsHtml = '';
+  if(result && existing) {
+    pointsHtml = existing === result
+      ? `<div style="background:rgba(37,163,85,0.15);border:1px solid var(--green-light);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--green-light);font-weight:700;margin-top:10px">🏆 Bravo ! +${WINNER_POINTS} points — ${result}</div>`
+      : `<div style="background:rgba(232,64,64,0.1);border:1px solid var(--red);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:10px">❌ Raté — Le vainqueur était ${result}</div>`;
+  }
+
+  const statusMsg = result
+    ? `<div style="font-size:12px;color:var(--muted);margin-top:10px">🔒 Résultat officiel saisi — pronos fermés</div>`
+    : closed
+      ? `<div style="font-size:12px;color:var(--red);margin-top:10px">🔒 Délai dépassé — pronos fermés le 10 juin</div>`
+      : `<div style="font-size:12px;color:var(--muted);margin-top:10px">⏰ Ferme le 10 juin à 23h59</div>`;
+
+  const existingLabel = existing
+    ? `<span style="font-size:12px;color:var(--green-light)">✅ ${existing}</span>`
+    : `<span style="font-size:12px;color:var(--muted)">Non saisi</span>`;
+
+  const teamOpts = COUNTRIES.sort((a,b) => a.name.localeCompare(b.name,'fr'))
+    .map(c => `<option value="${c.name}" ${existing===c.name?'selected':''}>${c.name}</option>`).join('');
+
+  return `
+  <div style="margin-bottom:8px;border-radius:14px;overflow:hidden;border:2px solid #25A355">
+    <div onclick="togglePronoSection('winner-bonus')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:linear-gradient(135deg,rgba(37,163,85,0.15),rgba(37,163,85,0.05))">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🏆</span>
+        <div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1.5px">BONUS — PAYS VAINQUEUR</div>
+          <div style="font-size:12px;color:#25A355;font-weight:600">+${WINNER_POINTS} points si bonne réponse</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${existingLabel}
+        <span id="parrow-winner-bonus" style="color:var(--muted);font-size:16px">▼</span>
+      </div>
+    </div>
+    <div id="winner-bonus" style="display:none;background:var(--card);padding:16px 18px">
+      <div style="font-style:italic;color:var(--muted);font-size:13px;margin-bottom:14px">Quel pays remportera la Coupe du Monde 2026 ?</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:180px">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Équipe</label>
+          <select id="winner-team" ${disabledAttr} style="width:100%;font-size:13px;padding:8px 10px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:8px">
+            <option value="">— Choisir une équipe —</option>${teamOpts}
+          </select>
+        </div>
+        ${!closed && !result ? `<button class="btn btn-gold" onclick="saveWinner()" style="height:38px;padding:0 16px;background:#25A355;border-color:#25A355">Valider →</button>` : ''}
+      </div>
+      ${statusMsg}${pointsHtml}
+    </div>
+  </div>`;
+}
+
+function saveWinner() {
+  const team = document.getElementById('winner-team')?.value;
+  if(!team) { showToast('Choisissez une équipe', 'error'); return; }
+  if(isWinnerClosed()) { showToast('🔒 Délai dépassé', 'error'); return; }
+  const uid = state.currentUser.id;
+  state.winnerPronos[uid] = team;
+  dbSave().then(() => {
+    showToast(`🏆 Prono bonus enregistré — ${team}`, 'success');
+    renderPronos();
+  });
+}
 
 function isHotTeamClosed() {
   return isBonusClosed(HOT_TEAM_DEADLINE);
@@ -3470,6 +3585,8 @@ async function init() {
   state.topScorerResult = data.topScorerResult || null;
   state.hotTeamPronos = data.hotTeamPronos || {};
   state.hotTeamResult = data.hotTeamResult || null;
+  state.winnerPronos = data.winnerPronos || {};
+  state.winnerResult = data.winnerResult || null;
   state.previousRanking = data.previousRanking || {};
 
   // Mettre à jour le compteur de backup
