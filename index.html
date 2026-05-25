@@ -2257,9 +2257,11 @@ function renderClassementEquipes() {
     }))
     .sort((a,b) => b.moyenne - a.moyenne || b.total - a.total);
 
+  let currentRank = 1;
   ranked.forEach((s, i) => {
-    if(i === 0) s.rank = 1;
-    else s.rank = ranked[i-1].moyenne === s.moyenne ? ranked[i-1].rank : i + 1;
+    if(i === 0) { s.rank = 1; }
+    else if(ranked[i-1].moyenne === s.moyenne) { s.rank = ranked[i-1].rank; }
+    else { s.rank = i + 1; }
   });
 
   let html = '<div class="scoreboard">';
@@ -2351,9 +2353,11 @@ function renderClassementSites() {
     }))
     .sort((a,b) => b.moyenne - a.moyenne || b.total - a.total);
 
+  let currentRank = 1;
   ranked.forEach((s, i) => {
-    if(i === 0) s.rank = 1;
-    else s.rank = ranked[i-1].moyenne === s.moyenne ? ranked[i-1].rank : i + 1;
+    if(i === 0) { s.rank = 1; }
+    else if(ranked[i-1].moyenne === s.moyenne) { s.rank = ranked[i-1].rank; }
+    else { s.rank = i + 1; }
   });
 
   let html = '<div class="scoreboard">';
@@ -2427,8 +2431,8 @@ function matchCard(m) {
     const pts = prono ? calcPoints(prono, r, m.roundKey) : null;
     return { player: p, prono, pts };
   }).filter(x => x.prono);
-  const perfect = pronosForMatch.filter(x => x.pts >= 5*coeff).length;
-  const good = pronosForMatch.filter(x => x.pts > 0 && x.pts < 5*coeff).length;
+  const perfect = pronosForMatch.filter(x => x.pts >= 3*coeff).length;
+  const good = pronosForMatch.filter(x => x.pts > 0 && x.pts < 3*coeff).length;
   const zero = pronosForMatch.filter(x => x.pts === 0).length;
   const total = pronosForMatch.length;
   const uid = 'res-' + m.id;
@@ -2448,8 +2452,8 @@ function matchCard(m) {
       + '<span style="font-weight:700;font-size:13px">' + awayTeam.name + '</span>';
 
   const rows = pronosForMatch.sort((a,b) => b.pts - a.pts).map(({player, prono, pts}) => {
-    const cls = pts >= 5*coeff ? 'pts-perfect' : pts > 0 ? 'pts-good' : 'pts-zero';
-    const icon = pts >= 5*coeff ? '⭐' : pts > 0 ? '✅' : '❌';
+    const cls = pts >= 3*coeff ? 'pts-perfect' : pts > 0 ? 'pts-good' : 'pts-zero';
+    const icon = pts >= 3*coeff ? '⭐' : pts > 0 ? '✅' : '❌';
     const pronoTabLine = hasTAB && parseInt(prono.home) === parseInt(prono.away) && prono.tabWinner
       ? ' · 🎯 ' + (prono.tabWinner === 'home' ? homeTeam.name : awayTeam.name)
       : '';
