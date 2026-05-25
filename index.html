@@ -1256,9 +1256,15 @@ async function dbLoad() {
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     if(!json) return EMPTY_DATA;
-    // players stockés en objet {id: player} → convertir en tableau
-    if(json.players && !Array.isArray(json.players)) {
-      json.players = Object.values(json.players);
+    // players peut être null, un tableau indexé ou un objet {id: player}
+    if(!json.players) {
+      json.players = [];
+    } else if(Array.isArray(json.players)) {
+      // Tableau Firebase (indexé 0,1,2...) — filtrer les nulls
+      json.players = json.players.filter(p => p !== null && p !== undefined);
+    } else {
+      // Objet {id: player} — convertir en tableau
+      json.players = Object.values(json.players).filter(p => p !== null);
     }
     return json;
   } catch(e) {
@@ -3679,10 +3685,10 @@ function resetAllData() {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      players: [], pronos: {}, results: {},
+      players: null, pronos: {}, results: {},
       unlockedPhases: { group: true, r16: false, r8: false, qf: false, sf: false, third: false, final: false },
       knockoutTeams: {}, topScorerPronos: {}, topScorerResult: null,
-      hotTeamPronos: {}, hotTeamResult: null
+      hotTeamPronos: {}, hotTeamResult: null, winnerPronos: {}, winnerResult: null, previousRanking: {}
     })
   }).then(() => {
     showToast('✅ Données effacées !', 'success');
