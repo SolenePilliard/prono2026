@@ -1245,7 +1245,8 @@ function getDeadlineLabel(match) {
 // FIREBASE — BASE DE DONNÉES PARTAGÉE
 // ==========================================
 
-const FIREBASE_URL = 'https://prono2026-87a25-default-rtdb.europe-west1.firebasedatabase.app/data.json';
+const FIREBASE_BASE = 'https://prono2026-87a25-default-rtdb.europe-west1.firebasedatabase.app/data';
+const FIREBASE_URL = FIREBASE_BASE + '.json';
 
 const EMPTY_DATA = { players: [], pronos: {}, results: {} };
 
@@ -1255,8 +1256,7 @@ async function dbLoad() {
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     if(!json) return EMPTY_DATA;
-    // Les joueurs peuvent être stockés soit en tableau (ancien format)
-    // soit en objet {id: player} (nouveau format atomique)
+    // players stockés en objet {id: player} → convertir en tableau
     if(json.players && !Array.isArray(json.players)) {
       json.players = Object.values(json.players);
     }
@@ -1267,10 +1267,24 @@ async function dbLoad() {
   }
 }
 
+// Écriture atomique d'une clé spécifique (sans toucher au reste)
+async function dbPatch(path, value) {
+  try {
+    const res = await fetch(`${FIREBASE_BASE}/${path}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(value)
+    });
+    if(!res.ok) console.error('dbPatch error', path, res.status);
+  } catch(e) {
+    console.error('dbPatch exception', path, e);
+  }
+}
+
+// Sauvegarde complète (pour admin, résultats, pronos, etc.)
 async function dbSave() {
   try {
     const payload = {
-      players: state.players,
       pronos: state.pronos,
       results: state.results,
       unlockedPhases: state.unlockedPhases,
@@ -1283,12 +1297,9 @@ async function dbSave() {
       winnerResult: state.winnerResult,
       previousRanking: state.previousRanking,
     };
-    const res = await fetch(FIREBASE_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if(!res.ok) console.error('dbSave error', res.status, await res.text());
+    // On écrit chaque clé séparément pour ne PAS écraser players
+    const keys = Object.keys(payload);
+    await Promise.all(keys.map(k => dbPatch(k, payload[k])));
   } catch(e) {
     console.error('dbSave exception', e);
   }
