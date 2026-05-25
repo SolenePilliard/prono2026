@@ -1254,7 +1254,13 @@ async function dbLoad() {
     const res = await fetch(FIREBASE_URL);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    return json || EMPTY_DATA;
+    if(!json) return EMPTY_DATA;
+    // Les joueurs peuvent être stockés soit en tableau (ancien format)
+    // soit en objet {id: player} (nouveau format atomique)
+    if(json.players && !Array.isArray(json.players)) {
+      json.players = Object.values(json.players);
+    }
+    return json;
   } catch(e) {
     console.error('dbLoad error:', e);
     return EMPTY_DATA;
@@ -1367,7 +1373,19 @@ async function registerPlayer() {
     createdAt: new Date().toISOString()
   };
   state.players.push(player);
-  save('players', state.players);
+  // Écriture atomique : on écrit UNIQUEMENT ce nouveau joueur dans Firebase
+  // pour éviter d'écraser les comptes créés en parallèle
+  try {
+    await fetch(`https://prono2026-87a25-default-rtdb.europe-west1.firebasedatabase.app/data/players/${player.id}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(player)
+    });
+  } catch(e) {
+    console.error('Erreur création compte:', e);
+    showToast('❌ Erreur de connexion', 'error');
+    return;
+  }
 
   document.getElementById('input-prenom').value = '';
   document.getElementById('input-nom').value = '';
