@@ -1287,25 +1287,31 @@ async function dbPatch(path, value) {
   }
 }
 
-// Sauvegarde complète (pour admin, résultats, pronos, etc.)
+// Sauvegarde des pronos d'UN seul joueur (atomique)
+async function dbSavePlayerPronos(playerId) {
+  await dbPatch(`pronos/${playerId}`, state.pronos[playerId] || {});
+}
+
+// Sauvegarde complète (pour admin : résultats, phases, bonus...)
+// Ne touche JAMAIS à players ni aux pronos des autres joueurs
 async function dbSave() {
   try {
-    const payload = {
-      pronos: state.pronos,
-      results: state.results,
-      unlockedPhases: state.unlockedPhases,
-      knockoutTeams: state.knockoutTeams,
-      topScorerPronos: state.topScorerPronos,
-      topScorerResult: state.topScorerResult,
-      hotTeamPronos: state.hotTeamPronos,
-      hotTeamResult: state.hotTeamResult,
-      winnerPronos: state.winnerPronos,
-      winnerResult: state.winnerResult,
-      previousRanking: state.previousRanking,
-    };
-    // On écrit chaque clé séparément pour ne PAS écraser players
-    const keys = Object.keys(payload);
-    await Promise.all(keys.map(k => dbPatch(k, payload[k])));
+    const uid = state.currentUser?.id;
+    const tasks = [
+      dbPatch('results', state.results),
+      dbPatch('unlockedPhases', state.unlockedPhases),
+      dbPatch('knockoutTeams', state.knockoutTeams),
+      dbPatch('topScorerPronos', state.topScorerPronos),
+      dbPatch('topScorerResult', state.topScorerResult),
+      dbPatch('hotTeamPronos', state.hotTeamPronos),
+      dbPatch('hotTeamResult', state.hotTeamResult),
+      dbPatch('winnerPronos', state.winnerPronos),
+      dbPatch('winnerResult', state.winnerResult),
+      dbPatch('previousRanking', state.previousRanking),
+    ];
+    // Sauvegarder uniquement les pronos du joueur connecté
+    if(uid) tasks.push(dbPatch(`pronos/${uid}`, state.pronos[uid] || {}));
+    await Promise.all(tasks);
   } catch(e) {
     console.error('dbSave exception', e);
   }
@@ -1867,7 +1873,8 @@ function setTabWinner(matchId, side) {
   // Mettre à jour le statut de la carte
   const card = document.getElementById('mc-'+matchId);
   if(card) card.classList.add('has-prono');
-  dbSave().then(() => showToast('🎯 TAB enregistré !', 'success'));
+  const uid2 = state.currentUser.id;
+  dbSavePlayerPronos(uid2).then(() => showToast('🎯 TAB enregistré !', 'success'));
 }
 
 function autoSaveProno(matchId) {
@@ -1934,7 +1941,7 @@ function randomFillRound(roundKey) {
     showToast('Tous les seizièmes sont déjà remplis !', 'error');
     return;
   }
-  dbSave().then(() => {
+  dbSavePlayerPronos(uid).then(() => {
     showToast(`🎲 ${filled} pronostic(s) générés aléatoirement !`, 'success');
     renderPronos();
   });
@@ -1966,7 +1973,7 @@ function randomFillGroup() {
     return;
   }
 
-  dbSave().then(() => {
+  dbSavePlayerPronos(uid).then(() => {
     showToast(`🎲 ${filled} pronostic(s) générés aléatoirement !`, 'success');
     renderPronos();
   });
@@ -1991,9 +1998,10 @@ function saveAllPronos() {
       saved++;
     }
   });
-  save('pronos', state.pronos);
-  showToast(`✅ ${saved} pronostics sauvegardés !`, 'success');
-  renderPronos();
+  dbSavePlayerPronos(uid).then(() => {
+    showToast(`✅ ${saved} pronostics sauvegardés !`, 'success');
+    renderPronos();
+  });
 }
 
 // ==========================================
@@ -3273,7 +3281,7 @@ function saveWinner() {
   if(isWinnerClosed()) { showToast('🔒 Délai dépassé', 'error'); return; }
   const uid = state.currentUser.id;
   state.winnerPronos[uid] = team;
-  dbSave().then(() => {
+  dbPatch(`winnerPronos/${uid}`, team).then(() => {
     showToast(`🏆 Prono bonus enregistré — ${team}`, 'success');
     renderPronos();
   });
@@ -3347,7 +3355,7 @@ function saveHotTeam() {
   if(isHotTeamClosed()) { showToast('🔒 Délai dépassé', 'error'); return; }
   const uid = state.currentUser.id;
   state.hotTeamPronos[uid] = team;
-  dbSave().then(() => {
+  dbPatch(`hotTeamPronos/${uid}`, team).then(() => {
     showToast(`🤬 Prono bonus enregistré — ${team}`, 'success');
     renderPronos();
   });
