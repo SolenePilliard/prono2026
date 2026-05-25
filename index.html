@@ -1208,43 +1208,27 @@ function getDeadlineLabel(match) {
 }
 
 // ==========================================
-// JSONBIN — BASE DE DONNÉES PARTAGÉE
+// ==========================================
+// FIREBASE — BASE DE DONNÉES PARTAGÉE
 // ==========================================
 
-const JSONBIN_API_KEY = '$2a$10$00LVvsaD1FKo0pKcIde1I.yGgi02iKkBay9t0IcBisqiaLTlD4fN2';
-const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b';
-let BIN_ID = '69b0a1041687bc351c7b5b9d';
+const FIREBASE_URL = 'https://prono2026-87a25-default-rtdb.europe-west1.firebasedatabase.app/data.json';
 
-// Données initiales vides
 const EMPTY_DATA = { players: [], pronos: {}, results: {} };
 
 async function dbLoad() {
   try {
-    const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}/latest`, {
-      headers: {
-        'X-Master-Key': JSONBIN_API_KEY,
-        'X-Bin-Meta': 'false'
-      }
-    });
+    const res = await fetch(FIREBASE_URL);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    return json.record || json || EMPTY_DATA;
+    return json || EMPTY_DATA;
   } catch(e) {
-    console.error(e);
+    console.error('dbLoad error:', e);
     return EMPTY_DATA;
   }
 }
 
 async function dbSave() {
-  if (!BIN_ID) return;
-
-  // 🛡️ PROTECTION ANTI-ÉCRASEMENT
-  // Refuser de sauvegarder si les joueurs sont vides alors que le bin en avait
-  const binSnapshot = localStorage.getItem('prono2026_backup_count');
-  if(binSnapshot && parseInt(binSnapshot) > 0 && state.players.length === 0) {
-    console.error('🛡️ Sauvegarde bloquée : state.players vide alors que le bin avait des joueurs !');
-    return;
-  }
-
   try {
     const payload = {
       players: state.players,
@@ -1260,24 +1244,12 @@ async function dbSave() {
       winnerResult: state.winnerResult,
       previousRanking: state.previousRanking,
     };
-    const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}`, {
+    const res = await fetch(FIREBASE_URL, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JSONBIN_API_KEY
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if(!res.ok) {
-      console.error('dbSave error', res.status, await res.text());
-    } else {
-      // 💾 BACKUP LOCAL après chaque sauvegarde réussie
-      if(state.players.length > 0) {
-        localStorage.setItem('prono2026_backup', JSON.stringify(payload));
-        localStorage.setItem('prono2026_backup_count', state.players.length);
-        localStorage.setItem('prono2026_backup_date', new Date().toISOString());
-      }
-    }
+    if(!res.ok) console.error('dbSave error', res.status, await res.text());
   } catch(e) {
     console.error('dbSave exception', e);
   }
@@ -3247,7 +3219,7 @@ const SQUAD_PLAYERS = {
   'Arabie Saoudite':['Salem Al-Dawsari','Firas Al-Buraikan','Abdullah Al-Hamdan','Sami Al-Najei'],
   'Uruguay':        ['Darwin Núñez','Federico Valverde','Rodrigo Bentancur','Facundo Torres','Maxi Gómez','Luis Suárez'],
   // Groupe I
-  'France':         ['Kylian Mbappé','Antoine Griezmann','Marcus Thuram','Ousmane Dembélé','Bradley Barcola','Désiré Doué','Rayan Cherki','Michael Olise','Aurélien Tchouaméni','Warren Zaïre-Emery'],
+  'France':         ['Kylian Mbappé','Marcus Thuram','Ousmane Dembélé','Bradley Barcola','Désiré Doué','Rayan Cherki','Michael Olise','Jean-Philippe Mateta','Maghnes Akliouche','Aurélien Tchouaméni','Warren Zaïre-Emery','N\'Golo Kanté','Adrien Rabiot'],
   'Irak':           ['Mohanad Ali','Amjad Attwan','Ali Faez','Aymen Hussein','Bashar Resan'],
   'Norvège':        ['Erling Haaland','Martin Ødegaard','Alexander Sørloth','Jørgen Strand Larsen','Antonio Nusa','Oscar Bobb','Andreas Schjelderup'],
   'Sénégal':        ['Sadio Mané','Ismaïla Sarr','Nicolas Jackson','Iliman Ndiaye','Habib Diarra','Pape Matar Sarr','Lamine Camara','Idrissa Gana Gueye'],
@@ -3292,7 +3264,7 @@ const TOP_STARS = [
   {player:'Harry Kane',         team:'Angleterre'},
   {player:'Erling Haaland',     team:'Norvège'},
   {player:'Lamine Yamal',       team:'Espagne'},
-  {player:'Vinícius Júnior',    team:'Brésil'},
+  {player:'Vinicius Junior',    team:'Brésil'},
   {player:'Raphinha',           team:'Brésil'},
   {player:'Kevin De Bruyne',    team:'Belgique'},
   {player:'Thibaut Courtois',   team:'Belgique'},
@@ -3545,9 +3517,9 @@ function resetAllData() {
   localStorage.removeItem('prono2026_backup_count');
   localStorage.removeItem('prono2026_backup_date');
   // Forcer la sauvegarde en ignorant la protection anti-écrasement
-  fetch(`${JSONBIN_BASE}/${BIN_ID}`, {
+  fetch(FIREBASE_URL, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       players: [], pronos: {}, results: {},
       unlockedPhases: { group: true, r16: false, r8: false, qf: false, sf: false, third: false, final: false },
@@ -3566,29 +3538,6 @@ function resetAllData() {
 
 async function init() {
   const data = await dbLoad();
-
-  // 🛡️ Si le bin est vide mais qu'on a un backup local, proposer la restauration
-  if((!data.players || data.players.length === 0)) {
-    const backup = localStorage.getItem('prono2026_backup');
-    const backupCount = parseInt(localStorage.getItem('prono2026_backup_count') || '0');
-    const backupDate = localStorage.getItem('prono2026_backup_date');
-    if(backup && backupCount > 0) {
-      const dateStr = backupDate ? new Date(backupDate).toLocaleString('fr-FR') : 'inconnue';
-      const restore = confirm(`⚠️ Le bin semble vide mais un backup local existe !\n\n${backupCount} joueurs sauvegardés le ${dateStr}.\n\nVoulez-vous restaurer ce backup ?`);
-      if(restore) {
-        const backupData = JSON.parse(backup);
-        // Restaurer dans le bin
-        Object.assign(data, backupData);
-        // Sauvegarder immédiatement dans le bin
-        setTimeout(async () => {
-          state.players = backupData.players || [];
-          await dbSave();
-          showToast('✅ Données restaurées depuis le backup local !', 'success');
-        }, 500);
-      }
-    }
-  }
-
   state.players = data.players || [];
   state.pronos = data.pronos || {};
   state.results = data.results || {};
@@ -3601,12 +3550,6 @@ async function init() {
   state.winnerPronos = data.winnerPronos || {};
   state.winnerResult = data.winnerResult || null;
   state.previousRanking = data.previousRanking || {};
-
-  // Mettre à jour le compteur de backup
-  if(state.players.length > 0) {
-    localStorage.setItem('prono2026_backup_count', state.players.length);
-  }
-
   refreshPlayerSelect();
 }
 
