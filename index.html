@@ -757,6 +757,7 @@
   <button class="tab-btn active" onclick="showTab('pronos')">🎯 Mes Pronos</button>
   <button class="tab-btn" onclick="showTab('classement')">🏆 Classement</button>
   <button class="tab-btn" onclick="showTab('sites')">📍 Par site</button>
+  <button class="tab-btn" onclick="showTab('equipes')">👥 Par équipe</button>
   <button class="tab-btn" onclick="showTab('resultats')">📊 Résultats</button>
   <button class="tab-btn" onclick="showTab('admin')">⚙️ Admin</button>
 </nav>
@@ -812,6 +813,31 @@
             <option>Rungis</option>
             <option>Serris</option>
             <option>Viry-Châtillon</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Équipe</label>
+          <select id="input-equipe" style="width:100%;font-size:14px;padding:10px 14px;background:var(--dark3);color:var(--text);border:1px solid var(--border);border-radius:10px">
+            <option value="">— Choisir votre équipe —</option>
+            <option>COMPTA A.BERNABLE</option>
+            <option>COMPTA B.RABY</option>
+            <option>COMPTA C.LECOMTE</option>
+            <option>COMPTA CAD+VEC+CEV</option>
+            <option>COMPTA D.BLUTEAU</option>
+            <option>COMPTA H.DASILVA</option>
+            <option>COMPTA INTERNE</option>
+            <option>COMPTA J.TROUDE</option>
+            <option>COMPTA K.BAISSI</option>
+            <option>COMPTA L.VICENTE</option>
+            <option>COMPTA LOUVRE</option>
+            <option>COMPTA P.COSSON</option>
+            <option>COMPTA PHG + PAT</option>
+            <option>COMPTA T.ROBERT</option>
+            <option>COMPTA T.TARAVELLA</option>
+            <option>POLE ADMIN/SUPPORT</option>
+            <option>POLE AUDIT</option>
+            <option>POLE JURIDIQUE</option>
+            <option>POLE SOCIAL</option>
           </select>
         </div>
         <div class="field-group">
@@ -876,6 +902,13 @@
     <div style="text-align:center; margin-top:24px">
       <button class="btn btn-gold" onclick="saveAllPronos()" style="padding:14px 36px; font-size:16px">💾 Sauvegarder tous mes pronos</button>
     </div>
+  </div>
+
+  <!-- PAGE CLASSEMENT PAR ÉQUIPE -->
+  <div class="page" id="page-equipes" style="display:none">
+    <div class="section-title">CLASSEMENT PAR ÉQUIPE</div>
+    <div class="section-sub">Moyenne des points par joueur · mis à jour régulièrement</div>
+    <div id="equipes-container"></div>
   </div>
 
   <!-- PAGE CLASSEMENT PAR SITE -->
@@ -1309,15 +1342,16 @@ function toggleRegister() {
 async function registerPlayer() {
   const prenomRaw = document.getElementById('input-prenom').value.trim();
   const nomRaw = document.getElementById('input-nom').value.trim();
-  // Formatage : prénom avec majuscule initiale, nom tout en majuscules
   const prenom = prenomRaw.charAt(0).toUpperCase() + prenomRaw.slice(1).toLowerCase();
   const nom = nomRaw.toUpperCase();
   const site = document.getElementById('input-site').value;
+  const equipe = document.getElementById('input-equipe').value;
   const pin = document.getElementById('input-pin').value.trim();
   const pin2 = document.getElementById('input-pin2').value.trim();
 
   if(!prenom || !nom) { showToast('Veuillez remplir prénom et nom', 'error'); return; }
   if(!site) { showToast('Veuillez choisir votre site', 'error'); return; }
+  if(!equipe) { showToast('Veuillez choisir votre équipe', 'error'); return; }
   if(!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { showToast('Le PIN doit être 4 chiffres', 'error'); return; }
   if(pin !== pin2) { showToast('Les deux PIN ne correspondent pas', 'error'); return; }
 
@@ -1327,7 +1361,7 @@ async function registerPlayer() {
   const pinHash = await hashPin(pin);
   const player = {
     id: 'p' + Date.now(),
-    prenom, nom, site,
+    prenom, nom, site, equipe,
     pinHash,
     color: COLORS[state.players.length % COLORS.length],
     createdAt: new Date().toISOString()
@@ -1338,6 +1372,7 @@ async function registerPlayer() {
   document.getElementById('input-prenom').value = '';
   document.getElementById('input-nom').value = '';
   document.getElementById('input-site').value = '';
+  document.getElementById('input-equipe').value = '';
   document.getElementById('input-pin').value = '';
   document.getElementById('input-pin2').value = '';
 
@@ -1432,6 +1467,20 @@ function showTab(tab) {
   btns.forEach(b => { if(b.getAttribute('onclick').includes(tab)) b.classList.add('active'); });
 
   if(tab === 'pronos') renderPronos();
+  if(tab === 'equipes') {
+    dbLoad().then(data => {
+      state.players = data.players || [];
+      state.pronos = data.pronos || {};
+      state.results = data.results || {};
+      state.topScorerPronos = data.topScorerPronos || {};
+      state.topScorerResult = data.topScorerResult || null;
+      state.hotTeamPronos = data.hotTeamPronos || {};
+      state.hotTeamResult = data.hotTeamResult || null;
+      state.winnerPronos = data.winnerPronos || {};
+      state.winnerResult = data.winnerResult || null;
+      renderClassementEquipes();
+    });
+  }
   if(tab === 'sites') {
     dbLoad().then(data => {
       state.players = data.players || [];
@@ -2127,6 +2176,99 @@ function renderClassement() {
 // CLASSEMENT PAR SITE
 // ==========================================
 
+const EQUIPES = [
+  'COMPTA A.BERNABLE','COMPTA B.RABY','COMPTA C.LECOMTE','COMPTA CAD+VEC+CEV',
+  'COMPTA D.BLUTEAU','COMPTA H.DASILVA','COMPTA INTERNE','COMPTA J.TROUDE',
+  'COMPTA K.BAISSI','COMPTA L.VICENTE','COMPTA LOUVRE','COMPTA P.COSSON',
+  'COMPTA PHG + PAT','COMPTA T.ROBERT','COMPTA T.TARAVELLA',
+  'POLE ADMIN/SUPPORT','POLE AUDIT','POLE JURIDIQUE','POLE SOCIAL'
+];
+
+function renderClassementEquipes() {
+  const hasResults = Object.keys(state.results).length > 0;
+  if(!hasResults) {
+    document.getElementById('equipes-container').innerHTML = `
+      <div class="empty-state"><div class="icon">⏳</div>
+      <div>Le classement par équipe s'affichera dès que les premiers résultats seront saisis par le tout puissant Administrateur 😉</div></div>`;
+    return;
+  }
+
+  const equipData = {};
+  EQUIPES.forEach(e => { equipData[e] = { total: 0, count: 0, players: [] }; });
+
+  state.players.forEach(p => {
+    const equipe = p.equipe;
+    if(!equipe || !equipData[equipe]) return;
+    const { total } = computePlayerScore(p.id);
+    equipData[equipe].total += total;
+    equipData[equipe].count++;
+    equipData[equipe].players.push({ name: `${p.prenom} ${p.nom}`, total, color: p.color });
+  });
+
+  const ranked = Object.entries(equipData)
+    .filter(([, d]) => d.count > 0)
+    .map(([equipe, d]) => ({
+      equipe, count: d.count, total: d.total,
+      moyenne: Math.round((d.total / d.count) * 10) / 10,
+      players: d.players.sort((a,b) => b.total - a.total)
+    }))
+    .sort((a,b) => b.moyenne - a.moyenne || b.total - a.total);
+
+  ranked.forEach((s, i) => {
+    if(i === 0) s.rank = 1;
+    else s.rank = ranked[i-1].moyenne === s.moyenne ? ranked[i-1].rank : i + 1;
+  });
+
+  let html = '<div class="scoreboard">';
+  html += `<div class="scoreboard-header">
+    <div>#</div><div>Équipe</div>
+    <div style="text-align:center">Joueurs</div>
+    <div style="text-align:center">Total</div>
+    <div style="text-align:center">Moy.</div>
+  </div>`;
+
+  ranked.forEach(s => {
+    const rowClass = s.rank===1?'top1':s.rank===2?'top2':s.rank===3?'top3':'';
+    const badgeClass = s.rank===1?'rank-1':s.rank===2?'rank-2':s.rank===3?'rank-3':'rank-other';
+    const uid = 'equipe-' + s.equipe.replace(/[\s\/\+\.]/g,'_');
+
+    html += `
+    <div class="scoreboard-row ${rowClass}" style="cursor:pointer" onclick="toggleSiteDetail('${uid}')">
+      <div><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">👥</span>
+        <div>
+          <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.equipe}</div>
+          <div style="font-size:11px;color:var(--muted)">${s.count} joueur(s) · cliquer pour détail</div>
+        </div>
+      </div>
+      <div class="score-cell" style="text-align:center;color:var(--muted)">${s.count}</div>
+      <div class="score-cell" style="text-align:center;color:var(--muted)">${s.total}</div>
+      <div class="score-total">${s.moyenne}</div>
+    </div>
+    <div id="${uid}" style="display:none;background:var(--dark3);padding:10px 16px;border-bottom:1px solid var(--border)">
+      ${s.players.map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="player-avatar" style="width:26px;height:26px;font-size:10px;background:linear-gradient(135deg,${p.color},${p.color}88)">${p.name.split(' ').map(n=>n[0]).join('').toUpperCase()}</div>
+            <span style="font-size:13px">${p.name}</span>
+          </div>
+          <span class="points-badge pts-good">${p.total} pts</span>
+        </div>`).join('')}
+    </div>`;
+  });
+
+  const emptyEquipes = EQUIPES.filter(e => !equipData[e] || equipData[e].count === 0);
+  if(emptyEquipes.length) {
+    html += `<div style="padding:12px 16px;font-size:12px;color:var(--muted);text-align:center">
+      Sans joueur inscrit : ${emptyEquipes.join(', ')}
+    </div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('equipes-container').innerHTML = html;
+}
+
 const SITES = [
   'Brie Comte Robert','Chartres','Créteil',
   'Paris (Louvre)','Lyon','Maroc','Pontault-Combault','Rungis','Serris','Viry-Châtillon'
@@ -2431,7 +2573,7 @@ function renderPlayersAdmin() {
         <div class="player-avatar" style="width:34px;height:34px;font-size:13px;background:linear-gradient(135deg,${p.color},${p.color}88)">${getInitials(p).toUpperCase()}</div>
         <div>
           <div style="font-weight:600;font-size:14px">${p.prenom} ${p.nom}</div>
-          <div style="font-size:11px;color:var(--muted)">${p.site ? p.site + ' · ' : ''}${pronosCount} pronostic(s) · inscrit le ${new Date(p.createdAt).toLocaleDateString('fr-FR')}</div>
+          <div style="font-size:11px;color:var(--muted)">${p.site ? p.site : ''}${p.equipe ? ' · ' + p.equipe : ''} · ${pronosCount} pronostic(s)</div>
         </div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="deletePlayer('${p.id}')">🗑️ Supprimer</button>
