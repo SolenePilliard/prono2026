@@ -1308,6 +1308,8 @@ async function dbSave() {
       dbPatch('winnerPronos', state.winnerPronos),
       dbPatch('winnerResult', state.winnerResult),
       dbPatch('previousRanking', state.previousRanking),
+      dbPatch('previousSiteRanking', state.previousSiteRanking),
+      dbPatch('previousEquipeRanking', state.previousEquipeRanking),
     ];
     // Sauvegarder uniquement les pronos du joueur connecté
     if(uid) tasks.push(dbPatch(`pronos/${uid}`, state.pronos[uid] || {}));
@@ -1341,6 +1343,8 @@ let state = {
   winnerPronos: {}, // {playerId: team}
   winnerResult: null, // team saisi par admin
   previousRanking: {}, // {playerId: rank} snapshot avant dernière mise à jour
+  previousSiteRanking: {}, // {site: rank}
+  previousEquipeRanking: {}, // {equipe: rank}
 };
 
 // ==========================================
@@ -2276,10 +2280,12 @@ function renderClassementEquipes() {
     const rowClass = s.rank===1?'top1':s.rank===2?'top2':s.rank===3?'top3':'';
     const badgeClass = s.rank===1?'rank-1':s.rank===2?'rank-2':s.rank===3?'rank-3':'rank-other';
     const uid = 'equipe-' + s.equipe.replace(/[\s\/\+\.]/g,'_');
+    const prevRankE = state.previousEquipeRanking[s.equipe];
+    const trendE = prevRankE === undefined ? '' : prevRankE > s.rank ? `<span style="font-size:10px;color:var(--green-light);font-weight:700">▲${prevRankE-s.rank}</span>` : prevRankE < s.rank ? `<span style="font-size:10px;color:var(--red);font-weight:700">▼${s.rank-prevRankE}</span>` : `<span style="font-size:10px;color:var(--muted)">➡</span>`;
 
     html += `
     <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:52px 1fr 44px 54px 60px" onclick="toggleSiteDetail('${uid}')">
-      <div style="display:flex;align-items:center;gap:4px"><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
+      <div style="display:flex;align-items:center;gap:3px"><div class="rank-badge ${badgeClass}">${s.rank}</div>${trendE}</div>
       <div style="min-width:0">
         <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.equipe}</div>
         <div style="font-size:10px;color:var(--muted)">${s.count} joueur(s)</div>
@@ -2369,10 +2375,12 @@ function renderClassementSites() {
     const rowClass = s.rank===1?'top1':s.rank===2?'top2':s.rank===3?'top3':'';
     const badgeClass = s.rank===1?'rank-1':s.rank===2?'rank-2':s.rank===3?'rank-3':'rank-other';
     const uid = 'site-' + s.site.replace(/[\s-]/g,'_');
+    const prevRankS = state.previousSiteRanking[s.site];
+    const trendS = prevRankS === undefined ? '' : prevRankS > s.rank ? `<span style="font-size:10px;color:var(--green-light);font-weight:700">▲${prevRankS-s.rank}</span>` : prevRankS < s.rank ? `<span style="font-size:10px;color:var(--red);font-weight:700">▼${s.rank-prevRankS}</span>` : `<span style="font-size:10px;color:var(--muted)">➡</span>`;
 
     html += `
     <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:52px 1fr 44px 54px 60px" onclick="toggleSiteDetail('${uid}')">
-      <div style="display:flex;align-items:center;gap:4px"><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
+      <div style="display:flex;align-items:center;gap:3px"><div class="rank-badge ${badgeClass}">${s.rank}</div>${trendS}</div>
       <div style="min-width:0">
         <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.site}</div>
         <div style="font-size:10px;color:var(--muted)">${s.count} joueur(s)</div>
@@ -3187,6 +3195,48 @@ function saveResult(matchId) {
   });
   state.previousRanking = snapshot;
 
+  // 📸 Snapshot sites
+  const siteSnap = {};
+  const siteScores = {};
+  SITES.forEach(s => { siteScores[s] = { total: 0, count: 0 }; });
+  state.players.forEach(p => {
+    if(p.site && siteScores[p.site]) {
+      siteScores[p.site].total += computePlayerScore(p.id).total;
+      siteScores[p.site].count++;
+    }
+  });
+  const siteRanked = Object.entries(siteScores)
+    .filter(([,d]) => d.count > 0)
+    .map(([s,d]) => ({ s, moy: d.total/d.count }))
+    .sort((a,b) => b.moy - a.moy);
+  siteRanked.forEach((s,i) => {
+    if(i===0) siteSnap[s.s] = 1;
+    else if(siteRanked[i-1].moy === s.moy) siteSnap[s.s] = siteSnap[siteRanked[i-1].s];
+    else siteSnap[s.s] = i + 1;
+  });
+  state.previousSiteRanking = siteSnap;
+
+  // 📸 Snapshot équipes
+  const equipeSnap = {};
+  const equipeScores = {};
+  EQUIPES.forEach(e => { equipeScores[e] = { total: 0, count: 0 }; });
+  state.players.forEach(p => {
+    if(p.equipe && equipeScores[p.equipe]) {
+      equipeScores[p.equipe].total += computePlayerScore(p.id).total;
+      equipeScores[p.equipe].count++;
+    }
+  });
+  const equipeRanked = Object.entries(equipeScores)
+    .filter(([,d]) => d.count > 0)
+    .map(([e,d]) => ({ e, moy: d.total/d.count }))
+    .sort((a,b) => b.moy - a.moy);
+  equipeRanked.forEach((e,i) => {
+    if(i===0) equipeSnap[e.e] = 1;
+    else if(equipeRanked[i-1].moy === e.moy) equipeSnap[e.e] = equipeSnap[equipeRanked[i-1].e];
+    else equipeSnap[e.e] = i + 1;
+  });
+  state.previousEquipeRanking = equipeSnap;
+
   const existing = state.results[matchId] || {};
   state.results[matchId] = { home: parseInt(h), away: parseInt(a) };
   // Conserver tabWinner si déjà saisi
@@ -3720,6 +3770,8 @@ async function init() {
   state.winnerPronos = data.winnerPronos || {};
   state.winnerResult = data.winnerResult || null;
   state.previousRanking = data.previousRanking || {};
+  state.previousSiteRanking = data.previousSiteRanking || {};
+  state.previousEquipeRanking = data.previousEquipeRanking || {};
   refreshPlayerSelect();
 }
 
