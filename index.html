@@ -2048,43 +2048,29 @@ function calcPoints(prono, result, roundKey) {
   const pA = parseInt(prono.away);
   const rH = parseInt(result.home);
   const rA = parseInt(result.away);
-
   if(isNaN(pH) || isNaN(pA) || isNaN(rH) || isNaN(rA)) return 0;
 
-  const resultIsNul = rH === rA;
-  const pronoIsNul = pH === pA;
+  // Vainqueur réel
+  let realWinner;
+  if(rH > rA) realWinner = 'home';
+  else if(rA > rH) realWinner = 'away';
+  else if(hasTAB && result.tabWinner) realWinner = result.tabWinner;
+  else realWinner = 'draw';
 
-  // ---- CAS SCORE NUL EN PHASE KO (TAB obligatoire) ----
-  if(hasTAB && resultIsNul) {
-    // Score exact + bon TAB = 3 pts
-    if(pH === rH && pA === rA && prono.tabWinner && prono.tabWinner === result.tabWinner) return 3 * coeff;
-    // Score exact + mauvais TAB = 0 pt
-    if(pH === rH && pA === rA) return 0;
-    // Score différent mais bon gagnant via TAB = 1 pt
-    if(pronoIsNul && prono.tabWinner && prono.tabWinner === result.tabWinner) return 1 * coeff;
-    // Prono victoire directe et résultat TAB = 1 pt si bon vainqueur
-    if(!pronoIsNul) {
-      const pronoWinner = pH > pA ? 'home' : 'away';
-      if(pronoWinner === result.tabWinner) return 1 * coeff;
-    }
-    return 0;
-  }
+  // Vainqueur pronostiqué
+  let pronoWinner;
+  if(pH > pA) pronoWinner = 'home';
+  else if(pA > pH) pronoWinner = 'away';
+  else if(hasTAB && prono.tabWinner) pronoWinner = prono.tabWinner;
+  else pronoWinner = 'draw';
 
-  // ---- CAS SCORE NON NUL (ou phase groupes/seizièmes) ----
-  const realWinner = rH > rA ? 'home' : 'away';
+  const scoreExact = (pH === rH && pA === rA);
+  const bonVainqueur = (pronoWinner !== 'draw' && pronoWinner === realWinner)
+    || (pronoWinner === 'draw' && realWinner === 'draw'); // nul vs nul = bon résultat
 
-  // Score exact
-  if(pH === rH && pA === rA) return 3 * coeff;
-
-  // Bon gagnant via score direct
-  if(!pronoIsNul) {
-    const pronoWinner = pH > pA ? 'home' : 'away';
-    if(pronoWinner === realWinner) return 1 * coeff;
-  }
-
-  // Bon gagnant via TAB (prono nul + bon TAB + résultat non nul)
-  if(hasTAB && pronoIsNul && prono.tabWinner && prono.tabWinner === realWinner) return 3 * coeff;
-
+  if(scoreExact && bonVainqueur) return 3 * coeff;
+  if(scoreExact && !bonVainqueur) return 0;
+  if(bonVainqueur) return 1 * coeff;
   return 0;
 }
 
