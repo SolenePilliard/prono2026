@@ -2183,18 +2183,7 @@ function renderClassement() {
 
     // Flèche d'évolution
     const prevRank = state.previousRanking[s.player.id];
-    let trendHtml = '';
-    if(prevRank === undefined) {
-      trendHtml = ''; // pas de référence
-    } else if(prevRank > s.rank) {
-      const diff = prevRank - s.rank;
-      trendHtml = `<span style="font-size:11px;color:var(--green-light);font-weight:700">▲${diff}</span>`;
-    } else if(prevRank < s.rank) {
-      const diff = s.rank - prevRank;
-      trendHtml = `<span style="font-size:11px;color:var(--red);font-weight:700">▼${diff}</span>`;
-    } else {
-      trendHtml = `<span style="font-size:11px;color:var(--muted)">➡</span>`;
-    }
+    const trendHtml = trendArrow(prevRank, s.rank);
 
     html += `
       <div class="scoreboard-row ${rowClass}">
@@ -2230,6 +2219,13 @@ const EQUIPES = [
   'COMPTA PHG + PAT','COMPTA T.ROBERT','COMPTA T.TARAVELLA',
   'POLE ADMIN/SUPPORT','POLE AUDIT','POLE JURIDIQUE','POLE SOCIAL'
 ];
+
+function trendArrow(prevRank, currentRank) {
+  if(prevRank === undefined || prevRank === null) return '';
+  if(prevRank > currentRank) return '<span style="font-size:10px;color:var(--green-light);font-weight:700">▲' + (prevRank - currentRank) + '</span>';
+  if(prevRank < currentRank) return '<span style="font-size:10px;color:var(--red);font-weight:700">▼' + (currentRank - prevRank) + '</span>';
+  return '<span style="font-size:10px;color:var(--muted)">➡</span>';
+}
 
 function renderClassementEquipes() {
   const hasResults = Object.keys(state.results).length > 0;
@@ -2280,8 +2276,7 @@ function renderClassementEquipes() {
     const rowClass = s.rank===1?'top1':s.rank===2?'top2':s.rank===3?'top3':'';
     const badgeClass = s.rank===1?'rank-1':s.rank===2?'rank-2':s.rank===3?'rank-3':'rank-other';
     const uid = 'equipe-' + s.equipe.replace(/[\s\/\+\.]/g,'_');
-    const prevRankE = state.previousEquipeRanking[s.equipe];
-    const trendE = prevRankE === undefined ? '' : prevRankE > s.rank ? `<span style="font-size:10px;color:var(--green-light);font-weight:700">▲${prevRankE-s.rank}</span>` : prevRankE < s.rank ? `<span style="font-size:10px;color:var(--red);font-weight:700">▼${s.rank-prevRankE}</span>` : `<span style="font-size:10px;color:var(--muted)">➡</span>`;
+    const trendE = trendArrow(state.previousEquipeRanking[s.equipe], s.rank);
 
     html += `
     <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:64px 1fr 40px 50px 56px" onclick="toggleSiteDetail('${uid}')">
@@ -2375,8 +2370,7 @@ function renderClassementSites() {
     const rowClass = s.rank===1?'top1':s.rank===2?'top2':s.rank===3?'top3':'';
     const badgeClass = s.rank===1?'rank-1':s.rank===2?'rank-2':s.rank===3?'rank-3':'rank-other';
     const uid = 'site-' + s.site.replace(/[\s-]/g,'_');
-    const prevRankS = state.previousSiteRanking[s.site];
-    const trendS = prevRankS === undefined ? '' : prevRankS > s.rank ? `<span style="font-size:10px;color:var(--green-light);font-weight:700">▲${prevRankS-s.rank}</span>` : prevRankS < s.rank ? `<span style="font-size:10px;color:var(--red);font-weight:700">▼${s.rank-prevRankS}</span>` : `<span style="font-size:10px;color:var(--muted)">➡</span>`;
+    const trendS = trendArrow(state.previousSiteRanking[s.site], s.rank);
 
     html += `
     <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:52px 1fr 44px 54px 60px" onclick="toggleSiteDetail('${uid}')">
