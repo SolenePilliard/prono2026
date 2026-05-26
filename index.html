@@ -2265,9 +2265,9 @@ function renderClassementEquipes() {
   });
 
   let html = '<div class="scoreboard">';
-  html += `<div class="scoreboard-header">
+  html += `<div class="scoreboard-header" style="grid-template-columns:52px 1fr 44px 54px 60px">
     <div>#</div><div>Équipe</div>
-    <div style="text-align:center">Joueurs</div>
+    <div style="text-align:center">👥</div>
     <div style="text-align:center">Total</div>
     <div style="text-align:center">Moy.</div>
   </div>`;
@@ -2278,8 +2278,8 @@ function renderClassementEquipes() {
     const uid = 'equipe-' + s.equipe.replace(/[\s\/\+\.]/g,'_');
 
     html += `
-    <div class="scoreboard-row ${rowClass}" style="cursor:pointer" onclick="toggleSiteDetail('${uid}')">
-      <div><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
+    <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:52px 1fr 44px 54px 60px" onclick="toggleSiteDetail('${uid}')">
+      <div style="display:flex;align-items:center;gap:4px"><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:18px">👥</span>
         <div>
@@ -2361,9 +2361,9 @@ function renderClassementSites() {
   });
 
   let html = '<div class="scoreboard">';
-  html += `<div class="scoreboard-header">
+  html += `<div class="scoreboard-header" style="grid-template-columns:52px 1fr 44px 54px 60px">
     <div>#</div><div>Site</div>
-    <div style="text-align:center">Joueurs</div>
+    <div style="text-align:center">👥</div>
     <div style="text-align:center">Total</div>
     <div style="text-align:center">Moy.</div>
   </div>`;
@@ -2374,8 +2374,8 @@ function renderClassementSites() {
     const uid = 'site-' + s.site.replace(/[\s-]/g,'_');
 
     html += `
-    <div class="scoreboard-row ${rowClass}" style="cursor:pointer" onclick="toggleSiteDetail('${uid}')">
-      <div><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
+    <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:52px 1fr 44px 54px 60px" onclick="toggleSiteDetail('${uid}')">
+      <div style="display:flex;align-items:center;gap:4px"><div class="rank-badge ${badgeClass}">${s.rank}</div></div>
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:18px">📍</span>
         <div>
