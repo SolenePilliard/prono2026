@@ -2269,10 +2269,10 @@ function renderClassementEquipes() {
   });
 
   let html = '<div class="scoreboard">';
-  html += `<div class="scoreboard-header" style="grid-template-columns:52px 1fr 44px 54px 60px">
+  html += `<div class="scoreboard-header" style="grid-template-columns:64px 1fr 40px 50px 56px">
     <div>#</div><div>Équipe</div>
     <div style="text-align:center">👥</div>
-    <div style="text-align:center">Total</div>
+    <div style="text-align:center">Tot.</div>
     <div style="text-align:center">Moy.</div>
   </div>`;
 
@@ -2284,8 +2284,8 @@ function renderClassementEquipes() {
     const trendE = prevRankE === undefined ? '' : prevRankE > s.rank ? `<span style="font-size:10px;color:var(--green-light);font-weight:700">▲${prevRankE-s.rank}</span>` : prevRankE < s.rank ? `<span style="font-size:10px;color:var(--red);font-weight:700">▼${s.rank-prevRankE}</span>` : `<span style="font-size:10px;color:var(--muted)">➡</span>`;
 
     html += `
-    <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:52px 1fr 44px 54px 60px" onclick="toggleSiteDetail('${uid}')">
-      <div style="display:flex;align-items:center;gap:3px"><div class="rank-badge ${badgeClass}">${s.rank}</div>${trendE}</div>
+    <div class="scoreboard-row ${rowClass}" style="cursor:pointer;grid-template-columns:64px 1fr 40px 50px 56px" onclick="toggleSiteDetail('${uid}')">
+      <div style="display:flex;align-items:center;gap:2px;flex-wrap:nowrap"><div class="rank-badge ${badgeClass}">${s.rank}</div>${trendE}</div>
       <div style="min-width:0">
         <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.equipe}</div>
         <div style="font-size:10px;color:var(--muted)">${s.count} joueur(s)</div>
