@@ -1308,8 +1308,8 @@ async function dbSave() {
       dbPatch('winnerPronos', state.winnerPronos),
       dbPatch('winnerResult', state.winnerResult),
       dbPatch('previousRanking', state.previousRanking),
-      dbPatch('previousSiteRanking', state.previousSiteRanking),
-      dbPatch('previousEquipeRanking', state.previousEquipeRanking),
+      dbPatch('previousSiteRanking', JSON.stringify(state.previousSiteRanking)),
+      dbPatch('previousEquipeRanking', JSON.stringify(state.previousEquipeRanking)),
     ];
     // Sauvegarder uniquement les pronos du joueur connecté
     if(uid) tasks.push(dbPatch(`pronos/${uid}`, state.pronos[uid] || {}));
@@ -3764,8 +3764,8 @@ async function init() {
   state.winnerPronos = data.winnerPronos || {};
   state.winnerResult = data.winnerResult || null;
   state.previousRanking = data.previousRanking || {};
-  state.previousSiteRanking = data.previousSiteRanking || {};
-  state.previousEquipeRanking = data.previousEquipeRanking || {};
+  state.previousSiteRanking = typeof data.previousSiteRanking === 'string' ? JSON.parse(data.previousSiteRanking) : (data.previousSiteRanking || {});
+  state.previousEquipeRanking = typeof data.previousEquipeRanking === 'string' ? JSON.parse(data.previousEquipeRanking) : (data.previousEquipeRanking || {});
   refreshPlayerSelect();
 }
 
