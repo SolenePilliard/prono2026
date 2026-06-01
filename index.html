@@ -1086,32 +1086,32 @@ function generateGroupMatches() {
   let id = 1;
   // Dates de test (mars 2026) — à remettre en juin pour la vraie CdM
   const matchDates = {
-    A: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    B: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    C: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    D: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    E: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    F: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    G: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    H: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    I: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    J: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    K: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
-    L: ['2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26','2026-05-26'],
+    A: ['2026-06-02','2026-06-02','2026-06-02','2026-06-02','2026-06-02','2026-06-02'],
+    B: ['2026-06-03','2026-06-03','2026-06-03','2026-06-03','2026-06-03','2026-06-03'],
+    C: ['2026-06-04','2026-06-04','2026-06-04','2026-06-04','2026-06-04','2026-06-04'],
+    D: ['2026-06-05','2026-06-05','2026-06-05','2026-06-05','2026-06-05','2026-06-05'],
+    E: ['2026-06-06','2026-06-06','2026-06-06','2026-06-06','2026-06-06','2026-06-06'],
+    F: ['2026-06-07','2026-06-07','2026-06-07','2026-06-07','2026-06-07','2026-06-07'],
+    G: ['2026-06-08','2026-06-08','2026-06-08','2026-06-08','2026-06-08','2026-06-08'],
+    H: ['2026-06-09','2026-06-09','2026-06-09','2026-06-09','2026-06-09','2026-06-09'],
+    I: ['2026-06-10','2026-06-10','2026-06-10','2026-06-10','2026-06-10','2026-06-10'],
+    J: ['2026-06-11','2026-06-11','2026-06-11','2026-06-11','2026-06-11','2026-06-11'],
+    K: ['2026-06-12','2026-06-12','2026-06-12','2026-06-12','2026-06-12','2026-06-12'],
+    L: ['2026-06-13','2026-06-13','2026-06-13','2026-06-13','2026-06-13','2026-06-13'],
   };
   const displayDates = {
-    A: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    B: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    C: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    D: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    E: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    F: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    G: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    H: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    I: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    J: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    K: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
-    L: ['26 mai','26 mai','26 mai','26 mai','26 mai','26 mai'],
+    A: ['2 juin','2 juin','2 juin','2 juin','2 juin','2 juin'],
+    B: ['3 juin','3 juin','3 juin','3 juin','3 juin','3 juin'],
+    C: ['4 juin','4 juin','4 juin','4 juin','4 juin','4 juin'],
+    D: ['5 juin','5 juin','5 juin','5 juin','5 juin','5 juin'],
+    E: ['6 juin','6 juin','6 juin','6 juin','6 juin','6 juin'],
+    F: ['7 juin','7 juin','7 juin','7 juin','7 juin','7 juin'],
+    G: ['8 juin','8 juin','8 juin','8 juin','8 juin','8 juin'],
+    H: ['9 juin','9 juin','9 juin','9 juin','9 juin','9 juin'],
+    I: ['10 juin','10 juin','10 juin','10 juin','10 juin','10 juin'],
+    J: ['11 juin','11 juin','11 juin','11 juin','11 juin','11 juin'],
+    K: ['12 juin','12 juin','12 juin','12 juin','12 juin','12 juin'],
+    L: ['13 juin','13 juin','13 juin','13 juin','13 juin','13 juin'],
   };
 
   Object.entries(GROUPS).forEach(([grp, {teams}]) => {
@@ -1120,7 +1120,7 @@ function generateGroupMatches() {
     let di = 0;
     for(let i=0;i<teams.length;i++) {
       for(let j=i+1;j<teams.length;j++) {
-        const matchDay = md[di] || '2026-05-26';
+        const matchDay = md[di] || '2026-06-02';
         matches.push({
           id: 'g'+id,
           round: 'Groupe '+grp,
@@ -1139,42 +1139,42 @@ function generateGroupMatches() {
 
 const KNOCKOUT_MATCHES = [
   // 32es de finale (16 matchs)
-  {id:'r16_1',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1A',flag:'ko'}, away:{name:'3E/F/G',flag:'ko'}, date:'26 mai', deadline:'2026-05-26'},
-  {id:'r16_2',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1C',flag:'ko'}, away:{name:'3A/B/D',flag:'ko'}, date:'26 mai', deadline:'2026-05-26'},
-  {id:'r16_3',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1B',flag:'ko'}, away:{name:'3G/H/I',flag:'ko'}, date:'26 mai', deadline:'2026-05-26'},
-  {id:'r16_4',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1E',flag:'ko'}, away:{name:'3J/K/L',flag:'ko'}, date:'26 mai', deadline:'2026-05-26'},
-  {id:'r16_5',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1D',flag:'ko'}, away:{name:'2F',flag:'ko'},     date:'26 mai', deadline:'2026-05-26'},
-  {id:'r16_6',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1F',flag:'ko'}, away:{name:'2H',flag:'ko'},     date:'26 mai', deadline:'2026-05-26'},
-  {id:'r16_7',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1H',flag:'ko'}, away:{name:'2J',flag:'ko'},     date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_8',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1J',flag:'ko'}, away:{name:'2L',flag:'ko'},     date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_9',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1G',flag:'ko'}, away:{name:'2I',flag:'ko'},     date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_10', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1I',flag:'ko'}, away:{name:'2K',flag:'ko'},     date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_11', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1K',flag:'ko'}, away:{name:'2A',flag:'ko'},     date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_12', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1L',flag:'ko'}, away:{name:'2B',flag:'ko'},     date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_13', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2C',flag:'ko'}, away:{name:'3B/D/E',flag:'ko'}, date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_14', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2D',flag:'ko'}, away:{name:'3C/F/H',flag:'ko'}, date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_15', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2E',flag:'ko'}, away:{name:'2G',flag:'ko'},     date:'26 mai',  deadline:'2026-05-26'},
-  {id:'r16_16', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2M',flag:'ko'}, away:{name:'3A/I/J/K/L',flag:'ko'}, date:'26 mai', deadline:'2026-05-26'},
+  {id:'r16_1',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1A',flag:'ko'}, away:{name:'3E/F/G',flag:'ko'}, date:'3 juin', deadline:'2026-06-03'},
+  {id:'r16_2',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1C',flag:'ko'}, away:{name:'3A/B/D',flag:'ko'}, date:'3 juin', deadline:'2026-06-03'},
+  {id:'r16_3',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1B',flag:'ko'}, away:{name:'3G/H/I',flag:'ko'}, date:'3 juin', deadline:'2026-06-03'},
+  {id:'r16_4',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1E',flag:'ko'}, away:{name:'3J/K/L',flag:'ko'}, date:'3 juin', deadline:'2026-06-03'},
+  {id:'r16_5',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1D',flag:'ko'}, away:{name:'2F',flag:'ko'},     date:'3 juin', deadline:'2026-06-03'},
+  {id:'r16_6',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1F',flag:'ko'}, away:{name:'2H',flag:'ko'},     date:'3 juin', deadline:'2026-06-03'},
+  {id:'r16_7',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1H',flag:'ko'}, away:{name:'2J',flag:'ko'},     date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_8',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1J',flag:'ko'}, away:{name:'2L',flag:'ko'},     date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_9',  round:'Seizièmes de finale', roundKey:'r16', home:{name:'1G',flag:'ko'}, away:{name:'2I',flag:'ko'},     date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_10', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1I',flag:'ko'}, away:{name:'2K',flag:'ko'},     date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_11', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1K',flag:'ko'}, away:{name:'2A',flag:'ko'},     date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_12', round:'Seizièmes de finale', roundKey:'r16', home:{name:'1L',flag:'ko'}, away:{name:'2B',flag:'ko'},     date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_13', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2C',flag:'ko'}, away:{name:'3B/D/E',flag:'ko'}, date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_14', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2D',flag:'ko'}, away:{name:'3C/F/H',flag:'ko'}, date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_15', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2E',flag:'ko'}, away:{name:'2G',flag:'ko'},     date:'3 juin',  deadline:'2026-06-03'},
+  {id:'r16_16', round:'Seizièmes de finale', roundKey:'r16', home:{name:'2M',flag:'ko'}, away:{name:'3A/I/J/K/L',flag:'ko'}, date:'3 juin', deadline:'2026-06-03'},
   // Huitièmes de finale (8 matchs)
-  {id:'r8_1', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M1',flag:'ko'}, away:{name:'M2',flag:'ko'},   date:'27 mai',  deadline:'2026-05-27'},
-  {id:'r8_2', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M3',flag:'ko'}, away:{name:'M4',flag:'ko'},   date:'27 mai',  deadline:'2026-05-27'},
-  {id:'r8_3', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M5',flag:'ko'}, away:{name:'M6',flag:'ko'},   date:'27 mai', deadline:'2026-05-27'},
-  {id:'r8_4', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M7',flag:'ko'}, away:{name:'M8',flag:'ko'},   date:'27 mai', deadline:'2026-05-27'},
-  {id:'r8_5', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M9',flag:'ko'}, away:{name:'M10',flag:'ko'},  date:'27 mai', deadline:'2026-05-27'},
-  {id:'r8_6', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M11',flag:'ko'}, away:{name:'M12',flag:'ko'}, date:'27 mai', deadline:'2026-05-27'},
-  {id:'r8_7', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M13',flag:'ko'}, away:{name:'M14',flag:'ko'}, date:'27 mai', deadline:'2026-05-27'},
-  {id:'r8_8', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M15',flag:'ko'}, away:{name:'M16',flag:'ko'}, date:'27 mai', deadline:'2026-05-27'},
+  {id:'r8_1', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M1',flag:'ko'}, away:{name:'M2',flag:'ko'},   date:'4 juin',  deadline:'2026-06-04'},
+  {id:'r8_2', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M3',flag:'ko'}, away:{name:'M4',flag:'ko'},   date:'4 juin',  deadline:'2026-06-04'},
+  {id:'r8_3', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M5',flag:'ko'}, away:{name:'M6',flag:'ko'},   date:'4 juin', deadline:'2026-06-04'},
+  {id:'r8_4', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M7',flag:'ko'}, away:{name:'M8',flag:'ko'},   date:'4 juin', deadline:'2026-06-04'},
+  {id:'r8_5', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M9',flag:'ko'}, away:{name:'M10',flag:'ko'},  date:'4 juin', deadline:'2026-06-04'},
+  {id:'r8_6', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M11',flag:'ko'}, away:{name:'M12',flag:'ko'}, date:'4 juin', deadline:'2026-06-04'},
+  {id:'r8_7', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M13',flag:'ko'}, away:{name:'M14',flag:'ko'}, date:'4 juin', deadline:'2026-06-04'},
+  {id:'r8_8', round:'Huitièmes de finale', roundKey:'r8', home:{name:'M15',flag:'ko'}, away:{name:'M16',flag:'ko'}, date:'4 juin', deadline:'2026-06-04'},
   // Quarts de finale
-  {id:'qf_1', round:'Quarts de finale', roundKey:'qf', home:{name:'QF1',flag:'ko'}, away:{name:'QF2',flag:'ko'}, date:'28 mai', deadline:'2026-05-28'},
-  {id:'qf_2', round:'Quarts de finale', roundKey:'qf', home:{name:'QF3',flag:'ko'}, away:{name:'QF4',flag:'ko'}, date:'28 mai', deadline:'2026-05-28'},
-  {id:'qf_3', round:'Quarts de finale', roundKey:'qf', home:{name:'QF5',flag:'ko'}, away:{name:'QF6',flag:'ko'}, date:'28 mai', deadline:'2026-05-28'},
-  {id:'qf_4', round:'Quarts de finale', roundKey:'qf', home:{name:'QF7',flag:'ko'}, away:{name:'QF8',flag:'ko'}, date:'28 mai', deadline:'2026-05-28'},
+  {id:'qf_1', round:'Quarts de finale', roundKey:'qf', home:{name:'QF1',flag:'ko'}, away:{name:'QF2',flag:'ko'}, date:'5 juin', deadline:'2026-06-05'},
+  {id:'qf_2', round:'Quarts de finale', roundKey:'qf', home:{name:'QF3',flag:'ko'}, away:{name:'QF4',flag:'ko'}, date:'5 juin', deadline:'2026-06-05'},
+  {id:'qf_3', round:'Quarts de finale', roundKey:'qf', home:{name:'QF5',flag:'ko'}, away:{name:'QF6',flag:'ko'}, date:'5 juin', deadline:'2026-06-05'},
+  {id:'qf_4', round:'Quarts de finale', roundKey:'qf', home:{name:'QF7',flag:'ko'}, away:{name:'QF8',flag:'ko'}, date:'5 juin', deadline:'2026-06-05'},
   // Demi-finales
-  {id:'sf_1', round:'Demi-finales', roundKey:'sf', home:{name:'SF1',flag:'ko'}, away:{name:'SF2',flag:'ko'}, date:'29 mai', deadline:'2026-05-29'},
-  {id:'sf_2', round:'Demi-finales', roundKey:'sf', home:{name:'SF3',flag:'ko'}, away:{name:'SF4',flag:'ko'}, date:'29 mai', deadline:'2026-05-29'},
+  {id:'sf_1', round:'Demi-finales', roundKey:'sf', home:{name:'SF1',flag:'ko'}, away:{name:'SF2',flag:'ko'}, date:'6 juin', deadline:'2026-06-06'},
+  {id:'sf_2', round:'Demi-finales', roundKey:'sf', home:{name:'SF3',flag:'ko'}, away:{name:'SF4',flag:'ko'}, date:'6 juin', deadline:'2026-06-06'},
   // Finale + 3e place
-  {id:'third', round:'Match 3e place', roundKey:'third', home:{name:'SF1P',flag:'ko'}, away:{name:'SF2P',flag:'ko'}, date:'1 juin', deadline:'2026-06-01'},
-  {id:'final', round:'Finale', roundKey:'final', home:{name:'SF1W',flag:'ko'}, away:{name:'SF2W',flag:'ko'}, date:'1 juin', deadline:'2026-06-01'},
+  {id:'third', round:'Match 3e place', roundKey:'third', home:{name:'SF1P',flag:'ko'}, away:{name:'SF2P',flag:'ko'}, date:'7 juin', deadline:'2026-06-07'},
+  {id:'final', round:'Finale', roundKey:'final', home:{name:'SF1W',flag:'ko'}, away:{name:'SF2W',flag:'ko'}, date:'7 juin', deadline:'2026-06-07'},
 ];
 
 const ALL_MATCHES = [...generateGroupMatches(), ...KNOCKOUT_MATCHES];
@@ -3305,11 +3305,11 @@ function saveResult(matchId) {
 // PRONO BONUS — MEILLEUR BUTEUR
 // ==========================================
 
-const TOP_SCORER_DEADLINE = '2026-06-10';
+const TOP_SCORER_DEADLINE = '2026-06-02';
 const TOP_SCORER_POINTS = 50;
-const HOT_TEAM_DEADLINE = '2026-06-10';
+const HOT_TEAM_DEADLINE = '2026-06-02';
 const HOT_TEAM_POINTS = 50;
-const WINNER_DEADLINE = '2026-06-10';
+const WINNER_DEADLINE = '2026-06-02';
 const WINNER_POINTS = 50;
 
 function isWinnerClosed() {
