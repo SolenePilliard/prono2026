@@ -1588,6 +1588,12 @@ function renderPronos() {
     if(!rounds[m.round]) rounds[m.round] = [];
     rounds[m.round].push(m);
   });
+  // Trier les matchs de chaque groupe par date
+  Object.keys(rounds).forEach(k => {
+    if(rounds[k][0] && rounds[k][0].roundKey === 'group') {
+      rounds[k].sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+    }
+  });
 
   // Séparer groupes et phases KO
   const groupRounds = Object.entries(rounds).filter(([,ms]) => ms[0].roundKey === 'group');
@@ -2473,6 +2479,12 @@ function renderResultats() {
     if(!rounds[m.round]) rounds[m.round] = [];
     rounds[m.round].push(m);
   });
+  // Trier les matchs de chaque groupe par date
+  Object.keys(rounds).forEach(k => {
+    if(rounds[k][0] && rounds[k][0].roundKey === 'group') {
+      rounds[k].sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+    }
+  });
 
   // Séparer groupes et KO
   const groupRounds = Object.entries(rounds).filter(([,ms]) => ms[0].roundKey === 'group');
@@ -2765,6 +2777,12 @@ function renderAdmin() {
   ALL_MATCHES.forEach(m => {
     if(!rounds[m.round]) rounds[m.round] = [];
     rounds[m.round].push(m);
+  });
+  // Trier les matchs de chaque groupe par date
+  Object.keys(rounds).forEach(k => {
+    if(rounds[k][0] && rounds[k][0].roundKey === 'group') {
+      rounds[k].sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+    }
   });
 
   let html = '';
