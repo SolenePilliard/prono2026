@@ -834,7 +834,7 @@
             <option>COMPTA PHG + PAT</option>
             <option>COMPTA T.ROBERT</option>
             <option>COMPTA T.TARAVELLA</option>
-            <option>EXPERTS JUS MIP CYD</option>
+            <option>EXPERTS JUS - MIP - CYD</option>
             <option>POLE ADMIN/SUPPORT</option>
             <option>POLE AUDIT</option>
             <option>POLE JURIDIQUE</option>
@@ -1775,7 +1775,7 @@ function renderPronos() {
             : `<div style="font-size:11px;color:var(--muted)">⏰ Ferme le ${getDeadlineLabel(m)}</div>`;
 
         // Boutons TAB si score égal — uniquement huitièmes et au-delà
-        const hasTAB = ['r8','qf','sf','third','final'].includes(m.roundKey);
+        const hasTAB = ['r16','r8','qf','sf','third','final'].includes(m.roundKey);
         const hVal = p ? p.home : '';
         const aVal = p ? p.away : '';
         const isDraw = hasTAB && hVal !== '' && aVal !== '' && parseInt(hVal) === parseInt(aVal);
@@ -1859,7 +1859,7 @@ function renderTabButtons(matchId, homeTeam, awayTeam, tabWinner, disabled) {
 
 function checkDrawTAB(matchId) {
   const m = ALL_MATCHES.find(x => x.id === matchId);
-  if(!m || !['r8','qf','sf','third','final'].includes(m.roundKey)) return;
+  if(!m || !['r16','r8','qf','sf','third','final'].includes(m.roundKey)) return;
   const h = document.getElementById('ph-'+matchId)?.value;
   const a = document.getElementById('pa-'+matchId)?.value;
   const container = document.getElementById('tab-'+matchId);
@@ -2054,7 +2054,7 @@ function getResult(score) {
 function calcPoints(prono, result, roundKey) {
   if(!prono || !result) return 0;
   const coeff = ROUND_COEFFICIENTS[roundKey] || 1;
-  const hasTAB = ['r8','qf','sf','third','final'].includes(roundKey);
+  const hasTAB = ['r16','r8','qf','sf','third','final'].includes(roundKey);
 
   const pH = parseInt(prono.home);
   const pA = parseInt(prono.away);
@@ -2215,7 +2215,7 @@ const EQUIPES = [
   'COMPTA D.BLUTEAU','COMPTA H.DASILVA','COMPTA INTERNE','COMPTA J.TROUDE',
   'COMPTA K.BAISSI','COMPTA L.VICENTE','COMPTA LOUVRE','COMPTA P.COSSON',
   'COMPTA PHG + PAT','COMPTA T.ROBERT','COMPTA T.TARAVELLA',
-  'POLE ADMIN/SUPPORT','POLE AUDIT','POLE JURIDIQUE','POLE SOCIAL'
+  'EXPERTS JUS - MIP - CYD','POLE ADMIN/SUPPORT','POLE AUDIT','POLE JURIDIQUE','POLE SOCIAL'
 ];
 
 function trendArrow(prevRank, currentRank) {
@@ -2430,7 +2430,7 @@ function matchCard(m) {
   const zero = pronosForMatch.filter(x => x.pts === 0).length;
   const total = pronosForMatch.length;
   const uid = 'res-' + m.id;
-  const hasTAB = ['r8','qf','sf','third','final'].includes(m.roundKey);
+  const hasTAB = ['r16','r8','qf','sf','third','final'].includes(m.roundKey);
   const isNulResult = parseInt(r.home) === parseInt(r.away);
   const tabWinnerTeam = hasTAB && isNulResult && r.tabWinner
     ? (r.tabWinner === 'home' ? homeTeam : awayTeam)
@@ -2912,7 +2912,7 @@ function renderAdmin() {
       const homeTeam = kt.home || m.home;
       const awayTeam = kt.away || m.away;
       const isKO = m.roundKey !== 'group';
-      const hasTABAdmin = ['r8','qf','sf','third','final'].includes(m.roundKey);
+      const hasTABAdmin = ['r16','r8','qf','sf','third','final'].includes(m.roundKey);
       const rHome = r.home !== undefined ? r.home : '';
       const rAway = r.away !== undefined ? r.away : '';
       const isDraw = hasTABAdmin && rHome !== '' && rAway !== '' && parseInt(rHome) === parseInt(rAway);
@@ -3224,7 +3224,7 @@ function updateAdminTabButtons(matchId) {
   const container = document.getElementById('tab-admin-'+matchId);
   if(!container) return;
   const m = ALL_MATCHES.find(x => x.id === matchId);
-  if(!m || !['r8','qf','sf','third','final'].includes(m.roundKey)) return;
+  if(!m || !['r16','r8','qf','sf','third','final'].includes(m.roundKey)) return;
   const kt = state.knockoutTeams[matchId] || {};
   const homeTeam = kt.home || m.home;
   const awayTeam = kt.away || m.away;
