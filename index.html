@@ -1589,10 +1589,18 @@ function renderPronos() {
     if(!rounds[m.round]) rounds[m.round] = [];
     rounds[m.round].push(m);
   });
-  // Trier les matchs de chaque groupe par date
+  // Trier les matchs de groupes par date
   Object.keys(rounds).forEach(k => {
     if(rounds[k][0] && rounds[k][0].roundKey === 'group') {
       rounds[k].sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+    }
+    // Pour les phases KO, trier par ID pour respecter l'ordre FIFA
+    else if(rounds[k][0] && rounds[k][0].roundKey !== 'group') {
+      rounds[k].sort((a, b) => {
+        const numA = parseInt(a.id.replace(/[^0-9]/g,'')) || 0;
+        const numB = parseInt(b.id.replace(/[^0-9]/g,'')) || 0;
+        return numA - numB;
+      });
     }
   });
 
@@ -2485,10 +2493,18 @@ function renderResultats() {
     if(!rounds[m.round]) rounds[m.round] = [];
     rounds[m.round].push(m);
   });
-  // Trier les matchs de chaque groupe par date
+  // Trier les matchs de groupes par date
   Object.keys(rounds).forEach(k => {
     if(rounds[k][0] && rounds[k][0].roundKey === 'group') {
       rounds[k].sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+    }
+    // Pour les phases KO, trier par ID pour respecter l'ordre FIFA
+    else if(rounds[k][0] && rounds[k][0].roundKey !== 'group') {
+      rounds[k].sort((a, b) => {
+        const numA = parseInt(a.id.replace(/[^0-9]/g,'')) || 0;
+        const numB = parseInt(b.id.replace(/[^0-9]/g,'')) || 0;
+        return numA - numB;
+      });
     }
   });
 
@@ -2784,10 +2800,18 @@ function renderAdmin() {
     if(!rounds[m.round]) rounds[m.round] = [];
     rounds[m.round].push(m);
   });
-  // Trier les matchs de chaque groupe par date
+  // Trier les matchs de groupes par date
   Object.keys(rounds).forEach(k => {
     if(rounds[k][0] && rounds[k][0].roundKey === 'group') {
       rounds[k].sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+    }
+    // Pour les phases KO, trier par ID pour respecter l'ordre FIFA
+    else if(rounds[k][0] && rounds[k][0].roundKey !== 'group') {
+      rounds[k].sort((a, b) => {
+        const numA = parseInt(a.id.replace(/[^0-9]/g,'')) || 0;
+        const numB = parseInt(b.id.replace(/[^0-9]/g,'')) || 0;
+        return numA - numB;
+      });
     }
   });
 
